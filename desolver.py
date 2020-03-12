@@ -71,7 +71,7 @@ class DifferentialEquation:
     and can solve the DE numerically for the inputed
     x values"""
 
-    def __rpr__(self):
+    def __repr__(self):
         """
         Print out useful information for debugging
         """
@@ -79,15 +79,15 @@ class DifferentialEquation:
 
         return info
     
-    def __init__(self, boundary_cond, x_val, name="DE Solver"):
+    def __init__(self, boundary_cond, name="DE Solver"):
         """
         Sets initial values
         boundary_cond (list): 1 fewer element than the DE order
         x_val (nd.array): x values used to calculate DE
         """
         self.boundaries = boundary_cond + [0]
-        self.x_val = x_val
         self.name = name
+        self.out_val = np.array(self.boundaries).reshape(-1, 1)
 
     def set_derivative_relation(self, differential_equation):
         """
@@ -98,18 +98,17 @@ class DifferentialEquation:
         """
         self.de_relation = differential_equation
 
-        self.highest_order_boundary()
-
-    def highest_order_boundary(self):
+    def highest_order_boundary(self, x_val, state_vars):
         """
         Calculates the highest order boundary for the case that it is not known
         """
 
-        self.boundaries[-1] = self.de_relation(self.boundaries, self.x_val[0])
+        self.boundaries[-1] = self.de_relation(
+                self.boundaries, self.x_val[0], state_vars)
 
         self.out_val = np.array(self.boundaries).reshape(-1, 1)
 
-    def solve_differential_step(self, set_of_differentials, x_val):
+    def solve_differential_step(self, set_of_differentials, x_val, step_size, state_vars):
         """Calculates the next highest order derivative from a set
         of inputed lower order derivatives using the differential
         equation
@@ -118,26 +117,12 @@ class DifferentialEquation:
                                     derivatives last
         x_val (float): value of x to use at this step
         """
-        return self.de_relation(set_of_differentials, x_val)
-       
-    def solve_differential(self):
-        """
-        Iterates over the requested x values and finds the output values
-        by calculating dx's and adding them to the next step. Uses the 
-        DE to solve the highest order differential for the next step"""
 
-        for x_val, x_prev in zip(self.x_val[1:], self.x_val[0:-1]):
-                dx = x_val-x_prev
+        step = np.array(list(reversed(
+            [0]+[step_size*derivative
+                for derivative in reversed(self.out_val[1:,-1])]
+            )))
+        step = step+self.out_val[:,-1]
+        step[-1] = self.solve_differential_step(step, x_val, state_vars)
 
-                step = np.array(list(reversed(
-                    [0]+[dx*derivative
-                        for derivative in reversed(self.out_val[1:,-1])]
-                    )))
-                step = step+self.out_val[:,-1]
-                step[-1] = self.solve_differential_step(step, x_val)
-                if step[0] <=0:
-                    # This is not general and should be removed in the future
-                    # Stops our case from having negative pressure
-                    step = np.array([0, 0, 0])
-
-                self.out_val  = np.append(self.out_val, step.reshape(-1,1), axis=1)
+        self.out_val  = np.append(self.out_val, step.reshape(-1,1), axis=1)
