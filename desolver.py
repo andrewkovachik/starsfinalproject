@@ -79,16 +79,25 @@ class DifferentialEquation:
 
         return info
     
-    def __init__(self, boundary_cond, name="DE Solver"):
+    def __init__(self, name="DE Solver"):
         """
         Sets initial values
         boundary_cond (list): 1 fewer element than the DE order
         x_val (nd.array): x values used to calculate DE
         """
-        self.boundaries = boundary_cond + [0]
         self.name = name
-        self.out_val = np.array(self.boundaries).reshape(-1, 1)
 
+    def set_boundaries(self, boundary_cond):
+        """
+        Sets the boundary conditions to the given inputs. Boundary 
+        conditions are assumed to be for all orders excluding
+        the highest order term.
+        Args:
+            boundary_cond (nd.array): input boundary conditions
+        """
+        self.boundaries = boundary_cond + [0]
+        self.out_val = np.array(self.boundaries).reshape(-1, 1)
+  
     def set_derivative_relation(self, differential_equation):
         """
         Sets the equation used to solve DE. The lambda must take
@@ -104,17 +113,15 @@ class DifferentialEquation:
         """
 
         self.boundaries[-1] = self.de_relation(
-                self.boundaries, self.x_val[0], state_vars)
+                self.boundaries, x_val, state_vars)
 
         self.out_val = np.array(self.boundaries).reshape(-1, 1)
 
-    def solve_differential_step(self, set_of_differentials, x_val, step_size, state_vars):
+    def solve_differential_step(self, x_val, step_size, state_vars):
         """Calculates the next highest order derivative from a set
         of inputed lower order derivatives using the differential
         equation
 
-        set_of_differentials (list): list of derivatves with higher order
-                                    derivatives last
         x_val (float): value of x to use at this step
         """
 
@@ -123,6 +130,7 @@ class DifferentialEquation:
                 for derivative in reversed(self.out_val[1:,-1])]
             )))
         step = step+self.out_val[:,-1]
-        step[-1] = self.solve_differential_step(step, x_val, state_vars)
+        step[-1] = self.de_relation(step, x_val, state_vars)
+
 
         self.out_val  = np.append(self.out_val, step.reshape(-1,1), axis=1)
