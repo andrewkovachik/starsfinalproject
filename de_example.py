@@ -8,6 +8,10 @@ import desolver as de
 # Create a new DE solver for a damped oscillating spring
 damped_spring = de.DifferentialEquation("Damped Spring")
 # Damped spring solution of d^2/dt^2(x) = -b/m d\dt(x) - kx/m
+# The lambda is a variable that can be used like a function.
+# This defines the variable to have a function which it can
+# use to solve the DE.
+# It expects that dd is derivatives (0 is x values, 1 is first deriv)
 damped_spring.set_derivative_relation(
         lambda dd, t, const: (-const['k']*dd[0]-const['b']*dd[1])/const['m']
         )
