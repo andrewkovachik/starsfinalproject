@@ -34,7 +34,7 @@ def newtons_method(func, x, dx=0.0001, dylimit=0.000001, iter_limit=100,
     """
     Newtons method for solving a single variable equation that is equal to zero.
 
-    func(lambda): A single variable lambda function that needs `x` as an input
+   func(lambda): A single variable lambda function that needs `x` as an input
     x(float): Initial guess to the solution of the function
     dx(float): The small step used to calculate the derivatieve of `func`
     dylimit(float): How close to zero is close enough to end loop
@@ -75,7 +75,7 @@ class DifferentialEquation:
         """
         Print out useful information for debugging
         """
-        info = "\t".join("Derivative {}: {:0.2f}".format(n,i) for n, i in enumerate(self.out_val[:,-1])) 
+        info = "\t".join("Derivative {}: {:0.2f}".format(n,i) for n, i in enumerate(self.val[:,-1])) 
 
         return info
     
@@ -96,7 +96,7 @@ class DifferentialEquation:
             boundary_cond (nd.array): input boundary conditions
         """
         self.boundaries = boundary_cond + [0]
-        self.out_val = np.array(self.boundaries).reshape(-1, 1)
+        self.val = np.array(self.boundaries).reshape(-1, 1)
   
     def set_derivative_relation(self, differential_equation):
         """
@@ -115,7 +115,7 @@ class DifferentialEquation:
         self.boundaries[-1] = self.de_relation(
                 self.boundaries, x_val, state_vars)
 
-        self.out_val = np.array(self.boundaries).reshape(-1, 1)
+        self.val = np.array(self.boundaries).reshape(-1, 1)
 
     def solve_differential_step(self, x_val, step_size, state_vars):
         """Calculates the next highest order derivative from a set
@@ -127,10 +127,10 @@ class DifferentialEquation:
 
         step = np.array(list(reversed(
             [0]+[step_size*derivative
-                for derivative in reversed(self.out_val[1:,-1])]
+                for derivative in reversed(self.val[1:,-1])]
             )))
-        step = step+self.out_val[:,-1]
+        step = step+self.val[:,-1]
         step[-1] = self.de_relation(step, x_val, state_vars)
 
 
-        self.out_val  = np.append(self.out_val, step.reshape(-1,1), axis=1)
+        self.val  = np.append(self.val, step.reshape(-1,1), axis=1)
