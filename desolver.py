@@ -71,11 +71,18 @@ class DifferentialEquation:
     and can solve the DE numerically for the inputed
     x values"""
 
+    def __str__(self):
+        """
+        Print out useful information for debugging
+        """
+        info = "\t".join("Derivative {}: {:0.4f}".format(n,i) for n, i in enumerate(self.val[:,-1])) 
+
+        return info
     def __repr__(self):
         """
         Print out useful information for debugging
         """
-        info = "\t".join("Derivative {}: {:0.2f}".format(n,i) for n, i in enumerate(self.val[:,-1])) 
+        info = "\t".join("Derivative {}: {:0.3f}".format(n,i) for n, i in enumerate(self.val[:,-1])) 
 
         return info
     
