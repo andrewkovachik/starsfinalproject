@@ -30,7 +30,7 @@ def array2D2txt(array, filename="", folder="Main_Sequences_txt_Files"):
     # Conditions for if a file name is given
     elif os.path.exists(filepath):
         # If filename exists rename it with
-        filepath += "_1.txt"
+        filepath.replace(".txt", "_1.txt")
 
     # Open a file with filename, write in the values that are tab seperated,
     #  and then close the file
