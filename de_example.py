@@ -62,7 +62,7 @@ def plot_diff_dampenings(spring, dampening, damp_label):
     for t in time:
         spring.solve_differential_step(0, 0.01, constants)
 
-    plt.plot(time, spring.val[0, :-1], label=damp_label)
+    plt.plot(time, spring.out_val[0, :-1], label=damp_label)
 
 
 time = np.arange(0, 2000)
