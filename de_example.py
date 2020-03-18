@@ -13,14 +13,10 @@ damped_spring = de.DifferentialEquation("Damped Spring")
 # use to solve the DE.
 # It expects that dd is derivatives (0 is x values, 1 is first deriv)
 damped_spring.set_derivative_relation(
-        lambda dd, t, const: (-const['k']*dd[0]-const['b']*dd[1])/const['m']
-        )
+    lambda dd, t, const: (-const['k'] * dd[0] - const['b'] * dd[1]) / const['m']
+)
 # Define characteristic constants
-constants = {
-        'k': 0.5,
-        'b': 0.1,
-        'm': 1
-        }
+constants = {'k': 0.5, 'b': 0.1, 'm': 1}
 # Give initial conditions of outstretched non moving spring
 damped_spring.set_boundaries([5, 0])
 
@@ -55,21 +51,18 @@ for n in range(48):
 
 # Lastly lets make sure this works for different dampening values
 
+
 def plot_diff_dampenings(spring, dampening, damp_label):
     time = np.arange(0, 2000)
-# No dampening (b^2<4mk)
-    constants = {
-            'k': 0.5,
-            'b': dampening,
-            'm': 1
-            }
-# Give initial conditions of outstretched non moving spring
+    # No dampening (b^2<4mk)
+    constants = {'k': 0.5, 'b': dampening, 'm': 1}
+    # Give initial conditions of outstretched non moving spring
     spring.set_boundaries([5, 0])
     spring.highest_order_boundary(0, constants)
     for t in time:
         spring.solve_differential_step(0, 0.01, constants)
 
-    plt.plot(time, spring.out_val[0,:-1], label=damp_label)
+    plt.plot(time, spring.val[0, :-1], label=damp_label)
 
 
 time = np.arange(0, 2000)
