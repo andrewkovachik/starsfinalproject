@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 
-def array2D2txt(array, filename="", folder="Main_Sequences_txt_Files"):
+def array2D2txt(array, header=[], filename="", folder="Main_Sequences_txt_Files"):
     """
     results2txt takes in a 2D array, a filename without an extension, and a
     folder path to create a .txt file with the values of the 2D array in
@@ -37,13 +37,23 @@ def array2D2txt(array, filename="", folder="Main_Sequences_txt_Files"):
             counter +=1
         filepath = filepath.format(counter)
 
-    # Open a file with filename, write in the values that are tab seperated,
-    #  and then close the file
+    # Open a file with filename and write in the values that are tab seperated
     text_file = open(filepath, "w")
+
+    # Write header if there is one
+    if header != []:
+        ln = len(header)
+        for i in range(ln):
+            n = text_file.write(str(header[i]) + "\t")
+        n = text_file.write("\n")
+
+    # Write content
     for i in range(len(array[0])):
         for j in array:
             n = text_file.write(str(j[i]) + "\t")
         n = text_file.write("\n")
+
+    # Close text file
     text_file.close()
 
 
