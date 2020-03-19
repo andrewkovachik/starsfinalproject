@@ -6,8 +6,8 @@ def array2D2txt(array, filename="", folder="Main_Sequences_txt_Files"):
     """
     results2txt takes in a 2D array, a filename without an extension, and a
     folder path to create a .txt file with the values of the 2D array in
-    the folder witht he given filename, and if no folder or filename are
-    specified then a default value for both are given
+    the folder with the given filename, and if no folder or filename are
+    specified then a default value is given for both
 
     Args:
         array (np.array): data to be written to a file
@@ -51,7 +51,7 @@ def txt2array2D(filepath):
         filepath (str): file path to search for and read in
 
     Return:
-        (array): Text file data in the form of a 2d array
+        (array): Text file data in the form of a 2D array
     """
     # Open the text file
     text_file = open(filepath, "r")
