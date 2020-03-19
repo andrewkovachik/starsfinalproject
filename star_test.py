@@ -6,8 +6,9 @@ the sun and will output a couple of plots to demonstrate.
 import matplotlib.pyplot as plt
 import numpy as np
 import stellar_properties as star
+import Use_Data as data
 
-def example_star():
+def example_star(starname=""):
     """
     Creates an example star, prints out some of the steps as it solves
     the set of DE's. Afterwards it creates plots of some of the
@@ -37,16 +38,26 @@ def example_star():
         if radii_step % 200 == 0:
             print(sun_like_star)
 
+    n = 0
     items = ["density", "temperature", "mass", "luminosity", "opticaldepth"]
+    # This nixt line is needed for saving data to a text file
+    array2D = [[] for i in range(len(items))]
     for item in items:
+        array2D[n] = sun_like_star.properties[item].val[0, :-1]
         plt.plot(
             radii_steps * step_size / 696342000, # Units of solar radius
-            sun_like_star.properties[item].val[0, :-1], # Plots the value of item
+            array2D[n], # Plots the value of item
             label=item)
         plt.xlabel("Solar Radii")
         plt.title(item)
-        plt.savefig("%s.png" % (item))
+        #plt.savefig("%s.png" % (item))
         plt.close()
+        n += 1
+
+    # Get user decision on saving star data
+    save = input("Save this star? (y/n): ")
+    # Save the data to a text file
+    if save == 'y': data.array2D2txt(array2D, starname)
 
 if __name__ == '__main__':
     example_star()
