@@ -19,19 +19,19 @@ def array2D2txt(array, header=[], filename="", folder="Main_Sequences_txt_Files"
 
     # Create path to file
     filepath = folder + "/" + filename
+    # Make defualt name
+    default = "star"
 
-    # If no file name is set come up with a standard
+    # If no file name is set come name it the default
     if filepath == folder + "/":
-        # gets the number of files in the folder for naming purposes
-        num_files = len(os.listdir(folder))
-        # file is renamed based on the number of files in the folder
-        filepath += "star_" + str(num_files) + ".txt"
+        filepath += default
 
     # Conditions for if a file name is given
-    elif os.path.exists(filepath):
+    if os.path.exists(filepath):
         # If filename exists rename it with a number appended
         counter = 0
-        filepath = filepath.replace(".txt", "_{}.txt")
+        filepath += "_{}.txt"
+
         while os.path.exists(filepath.format(counter)):
             # Loop until a name exists without some number
             counter +=1

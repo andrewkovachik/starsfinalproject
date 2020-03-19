@@ -60,4 +60,4 @@ def example_star(starname=""):
     if save == 'y': data.array2D2txt(array2D, items, starname)
 
 if __name__ == '__main__':
-    example_star("Test_Star")
+    example_star()
