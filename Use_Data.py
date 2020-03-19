@@ -29,8 +29,13 @@ def array2D2txt(array, filename="", folder="Main_Sequences_txt_Files"):
 
     # Conditions for if a file name is given
     elif os.path.exists(filepath):
-        # If filename exists rename it with
-        filepath.replace(".txt", "_1.txt")
+        # If filename exists rename it with a number appended
+        counter = 0
+        filepath = filepath.replace(".txt", "_{}.txt")
+        while os.path.exists(filepath.format(counter)):
+            # Loop until a name exists without some number
+            counter +=1
+        filepath = filepath.format(counter)
 
     # Open a file with filename, write in the values that are tab seperated,
     #  and then close the file
