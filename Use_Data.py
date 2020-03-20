@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 
-def array2D2txt(array, filename="", folder="Main_Sequences_txt_Files"):
+def array2D2txt(array, header=[], filename="", folder="Main_Sequences_txt_Files"):
     """
     results2txt takes in a 2D array, a filename without an extension, and a
     folder path to create a .txt file with the values of the 2D array in
@@ -19,31 +19,41 @@ def array2D2txt(array, filename="", folder="Main_Sequences_txt_Files"):
 
     # Create path to file
     filepath = folder + "/" + filename
+    # Make defualt name
+    default = "star"
 
-    # If no file name is set come up with a standard
+    # If no file name is set come name it the default
     if filepath == folder + "/":
-        # gets the number of files in the folder for naming purposes
-        num_files = len(os.listdir(folder))
-        # file is renamed based on the number of files in the folder
-        filepath += "star_" + str(num_files) + ".txt"
+        filepath += default
 
     # Conditions for if a file name is given
-    elif os.path.exists(filepath):
+    if os.path.exists(filepath):
         # If filename exists rename it with a number appended
         counter = 0
-        filepath = filepath.replace(".txt", "_{}.txt")
+        filepath += "_{}.txt"
+
         while os.path.exists(filepath.format(counter)):
             # Loop until a name exists without some number
             counter +=1
         filepath = filepath.format(counter)
 
-    # Open a file with filename, write in the values that are tab seperated,
-    #  and then close the file
+    # Open a file with filename and write in the values that are tab seperated
     text_file = open(filepath, "w")
+
+    # Write header if there is one
+    if header != []:
+        ln = len(header)
+        for i in range(ln):
+            n = text_file.write(str(header[i]) + "\t")
+        n = text_file.write("\n")
+
+    # Write content
     for i in range(len(array[0])):
         for j in array:
             n = text_file.write(str(j[i]) + "\t")
         n = text_file.write("\n")
+
+    # Close text file
     text_file.close()
 
 

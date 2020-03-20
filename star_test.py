@@ -57,7 +57,7 @@ def example_star(starname=""):
     # Get user decision on saving star data
     save = input("Save this star? (y/n): ")
     # Save the data to a text file
-    if save == 'y': data.array2D2txt(array2D, starname)
+    if save == 'y': data.array2D2txt(array2D, items, starname)
 
 if __name__ == '__main__':
     example_star()
