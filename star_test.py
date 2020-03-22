@@ -61,3 +61,4 @@ def example_star(starname=""):
 
 if __name__ == '__main__':
     example_star()
+    # This is my change
