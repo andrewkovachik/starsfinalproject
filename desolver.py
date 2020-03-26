@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -106,16 +105,22 @@ class DifferentialEquation:
             x_val (float): dependent variable at location of evaluation
             step_size (float): Small step forward being used for calculation
             state_vars (dict): Set of constants that can be used by de_relation
-        """
-        k1 = step[0]
-        k2 = step_size * self.de_relation(self.val[:, -1] + (k1 / 2),
-                                          x_val + step_size / 2, state_vars)
-        k3 = step_size * self.de_relation(self.val[:, -1] + (k2 / 2),
-                                          x_val + step_size / 2, state_vars)
-        k4 = step_size * self.de_relation(self.val[:, -1] +
-                                          (k3), x_val + step_size, state_vars)
 
-        adjusted_step = (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        Returns:
+            (nd.array): Adjusted step after making runge-kutta correction
+        """
+        kutta1 = step[0]
+
+        kutta2 = step_size * self.de_relation(
+            self.val[:, -1] + (kutta1 / 2), x_val + step_size / 2, state_vars)
+
+        kutta3 = step_size * self.de_relation(
+            self.val[:, -1] + (kutta2 / 2), x_val + step_size / 2, state_vars)
+
+        kutta4 = step_size * self.de_relation(self.val[:, -1] + (kutta3),
+                                              x_val + step_size, state_vars)
+
+        adjusted_step = (kutta1 + 2 * kutta2 + 2 * kutta3 + kutta4) / 6
         step[0] = adjusted_step
         return step
 
