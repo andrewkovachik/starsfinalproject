@@ -16,7 +16,7 @@ def example_star(starname=""):
     """
 
     expected_radii = 300000000
-    steps = 5000
+    steps = 100
     step_size = expected_radii / steps
 
     sun_like_star = star.Star(
@@ -35,8 +35,7 @@ def example_star(starname=""):
         sun_like_star.step_de()
         sun_like_star.step_non_de()
 
-        if radii_step % 200 == 0:
-            print(sun_like_star)
+        print(sun_like_star)
 
     n = 0
     items = ["density", "temperature", "mass", "luminosity", "opticaldepth"]
@@ -50,7 +49,7 @@ def example_star(starname=""):
             label=item)
         plt.xlabel("Solar Radii")
         plt.title(item)
-        #plt.savefig("%s.png" % (item))
+        plt.savefig("%s.png" % (item))
         plt.close()
         n += 1
 
