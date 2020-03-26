@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def si_prefix_multiple(value, prefix):
     """
     Conversion function for different SI prefixes"""
@@ -95,6 +96,29 @@ class DifferentialEquation:
 
         self.val = np.array(self.boundaries).reshape(-1, 1)
 
+    def runge_kutta(self, step, x_val, step_size, state_vars):
+        """
+        Runge-kutta method provides a correction factor to a first order
+        PDE. A fourth order solution is used here. 
+
+        Args:
+            step (nd.array): The previously determined increment of steps
+            x_val (float): dependent variable at location of evaluation
+            step_size (float): Small step forward being used for calculation
+            state_vars (dict): Set of constants that can be used by de_relation
+        """
+        k1 = step[0]
+        k2 = step_size * self.de_relation(self.val[:, -1] + (k1 / 2),
+                                          x_val + step_size / 2, state_vars)
+        k3 = step_size * self.de_relation(self.val[:, -1] + (k2 / 2),
+                                          x_val + step_size / 2, state_vars)
+        k4 = step_size * self.de_relation(self.val[:, -1] +
+                                          (k3), x_val + step_size, state_vars)
+
+        adjusted_step = (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        step[0] = adjusted_step
+        return step
+
     def solve_differential_step(self,
                                 x_val,
                                 step_size,
@@ -118,6 +142,11 @@ class DifferentialEquation:
                     step_size * derivative
                     for derivative in reversed(self.val[1:, -1])
                 ])))
+        # Runge-kutta step has to go here
+        if len(self.step) == 2:
+            self.step = self.runge_kutta(self.step, x_val, step_size,
+                                         state_vars)
+
         self.step = self.step + self.val[:, -1]
         self.step[-1] = self.de_relation(self.step, x_val, state_vars)
 
