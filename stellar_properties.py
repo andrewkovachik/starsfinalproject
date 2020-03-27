@@ -19,7 +19,10 @@ Kb = 1.381 * 10**-23
 # J/k^4/m^3
 a = 7.566 * 10**-16
 
-
+#Star mass and radius inital guesses
+M=1.989*10**30
+R=696340000
+            
 class Star:
     """
     Class definining star. Can calculate many different
@@ -45,9 +48,11 @@ class Star:
             Z=0.02,
             cent_density=162200,
             cent_opticaldepth=2 / 3,
-            cent_temperature=1.5 * 10**7,
             cent_radii=0.01,  #m
             step_size=0.1,
+            #Initial guess for total mass and radius of star based on desired position on HR diagram
+            #Define M, R above!
+            cent_temperature=2*G*M*Mp/(3*Kb*R),
             name="Generic Star"):
         """
         Initializes star by deffining the equations that make up

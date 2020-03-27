@@ -8,6 +8,16 @@ import numpy as np
 import stellar_properties as star
 import Use_Data as data
 
+#Constants
+G = 6.6741 * 10**-11
+Mp = 1.67 * 10**-27
+Kb = 1.381 * 10**-23
+
+#Star mass and radius inital guesses
+M=1.989*10**30
+R=696340000
+
+            
 def example_star(starname=""):
     """
     Creates an example star, prints out some of the steps as it solves
@@ -15,7 +25,7 @@ def example_star(starname=""):
     desired values to show that it works as expected
     """
 
-    expected_radii = 300000000
+    expected_radii = R
     steps = 100
     step_size = expected_radii / steps
 
@@ -26,7 +36,9 @@ def example_star(starname=""):
         Z=0.02,
         cent_density=162200,
         cent_opticaldepth=2/3,
-        cent_temperature=1.5*10**7,
+        #Initial guess for total mass and radius of star based on desired position on HR diagram
+        #Define M, R above!
+        cent_temperature=2*G*M*Mp/(3*Kb*R),
         cent_radii=0.01
         )
 
