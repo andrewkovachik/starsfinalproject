@@ -3,6 +3,7 @@ Class defining a star and it's various differential equations.
 """
 import numpy as np
 import desolver as de
+import math
 
 # m/s^2
 C = 2.98 * 10**8
@@ -44,10 +45,11 @@ class Star:
             Y=0.43,
             Z=0.02,
             cent_density=162200,
-            cent_opticaldepth=2 / 3,
+            cent_opticaldepth=0,
             cent_temperature=1.5 * 10**7,
             cent_radii=0.01,  #m
             step_size=0.1,
+            error_thresh=1e-5,
             name="Generic Star"):
         """
         Initializes star by deffining the equations that make up
@@ -70,14 +72,20 @@ class Star:
             "gamma": 5 / 3,
             "pressure": np.array([]),
             "energygen": np.array([]),
-            "density": de.DifferentialEquation("Density"),
-            "temperature": de.DifferentialEquation("Temperature"),
-            "mass": de.DifferentialEquation("Mass"),
-            "luminosity": de.DifferentialEquation("Luminosity"),
-            "opticaldepth": de.DifferentialEquation("Optical Depth"),
-            "radius": np.array([0.0000001]),
-            "radii": 0
+            "density": de.RungeKutta("Density"),
+            "temperature": de.RungeKutta("Temperature"),
+            "mass": de.RungeKutta("Mass"),
+            "luminosity": de.RungeKutta("Luminosity"),
+            "opticaldepth": de.RungeKutta("Optical Depth"),
+            "radius": np.array([cent_radii]),
+            "radii": cent_radii
         }
+
+        self.property_list = [
+            'opticaldepth', 'luminosity', 'mass', 'temperature', 'density'
+        ]
+        self.error = [0, 0, 0, 0, 0, 0]
+        self.error_thresh = error_thresh
 
         self.setup_stellar_equations()
         self.setup_boundary_conditions()
@@ -94,36 +102,21 @@ class Star:
         defines the which element to grab
         """
         self.properties['luminosity'].set_derivative_relation(
-            lambda dd, r, state: (
-                4 * np.pi * r**2 * state['density'].val[0, -1]
-                * state["energygen"][-1]
-            )
+            lambda dd, r, state: (4 * np.pi * r**2 * state['density'].now(0) * state["energygen"][-1])
         )
 
         self.properties['mass'].set_derivative_relation(
-            lambda dd, r, state: 4 * np.pi * r**2 * state['density'].val[0, -1]
-        )
+            lambda dd, r, state: 4 * np.pi * r**2 * state['density'].now(0))
 
         self.properties['opticaldepth'].set_derivative_relation(
-            lambda dd, r, state: state['opacity'] * state['density'].val[0, -1]
-        )
+            lambda dd, r, state: state['opacity'] * state['density'].now(0))
 
         self.properties['temperature'].set_derivative_relation(
-            lambda dd, r, state: -min(
-                3 * state['opacity'] * state['density'].val[0, -1]
-                * state['luminosity'].val[0, -1]
-                / (16 * np.pi * a * C * dd[0]**3 * r**2),
-                (1 - 1 / state['gamma']) * dd[0] * G * state['mass'].val[0, -1]
-                * state['density'].val[0, -1] / (state['pressure'][-1] * r**2)
-            )
+            lambda dd, r, state: -min(3 * state['opacity'] * state['density'].now(0) * state['luminosity'].now(0) / (16 * np.pi * a * C * dd[0]**3 * r**2), (1 - 1 / state['gamma']) * dd[0] * G * state['mass'].now(0) * state['density'].now(0) / (state['pressure'][-1] * r**2))
         )
 
         self.properties['density'].set_derivative_relation(
-            lambda dd, r, state: -(
-                G * self.properties['mass'].val[0, -1] * dd[0] / r**2
-                + self.properties['pressure_temp_grad']
-                * self.properties['temperature'].val[1, -1]
-            ) / self.properties['pressure_density_grad']
+            lambda dd, r, state: -(G * self.properties['mass'].now(0) * dd[0] / r**2 + self.properties['pressure_temp_grad'] * self.properties['temperature'].now(1)) / self.properties['pressure_density_grad']
         )
 
     def setup_boundary_conditions(self):
@@ -157,38 +150,37 @@ class Star:
 
         self.properties['pressure'] = np.append(
             self.properties['pressure'], (3 * np.pi**2)**(2 / 3) * HBAR**2 *
-            (self.properties['density'].val[0, -1] / Mp)**(5 / 3) /
-            (5 * Me) + self.properties['density'].val[0, -1] * Kb *
-            self.properties['temperature'].val[0, -1] / (self.mu * Mp) +
-            a * self.properties['temperature'].val[0, -1]**4 / 3)
+            (self.properties['density'].now(0) / Mp)**(5 / 3) /
+            (5 * Me) + self.properties['density'].now(0) * Kb *
+            self.properties['temperature'].now(0) /
+            (self.mu * Mp) + a * self.properties['temperature'].now(0)**4 / 3)
 
         self.properties['pressure_temp_grad'] = (
-            self.properties['density'].val[0, -1] * Kb / (self.mu * Mp) +
-            4 * a * self.properties['temperature'].val[0, -1]**3 / 3)
+            self.properties['density'].now(0) * Kb / (self.mu * Mp) +
+            4 * a * self.properties['temperature'].now(0)**3 / 3)
 
         self.properties['pressure_density_grad'] = (
             ((3 * np.pi**2)**(2 / 3) * HBAR**2 *
-             (self.properties['density'].val[0, -1] / Mp)**(2 / 3) /
-             (3 * Me * Mp)) + Kb * self.properties['temperature'].val[0, -1] /
+             (self.properties['density'].now(0) / Mp)**(2 / 3) /
+             (3 * Me * Mp)) + Kb * self.properties['temperature'].now(0) /
             (self.mu * Mp))
 
         k_es = 0.02 * (1 + self.X)
         k_ff = 1 * 10**24 * (self.Z + 0.0001) * (
-            self.properties['density'].val[0, -1] / 10**3)**0.7 * (
-                self.properties['temperature'].val[0, -1])**-3.5
+            self.properties['density'].now(0) / 10**3)**0.7 * (
+                self.properties['temperature'].now(0))**-3.5
         k_h = 2.5 * 10**-32 * (self.Z / 0.02) * (
-            self.properties['density'].val[0, -1] / 10**3)**0.5 * (
-                self.properties['temperature'].val[0, -1])**9
+            self.properties['density'].now(0) / 10**3)**0.5 * (
+                self.properties['temperature'].now(0))**9
 
         self.properties['opacity'] = (1 / k_h + 1 / max(k_es, k_ff))**-1
 
         energy_pp = 1.07 * 10**-7 * (
-            self.properties['density'].val[0, -1] / 10**5) * self.X**2 * (
-                self.properties['temperature'].val[0, -1] / 10**6)**4
+            self.properties['density'].now(0) / 10**5) * self.X**2 * (
+                self.properties['temperature'].now(0) / 10**6)**4
         energy_cno = 8.24 * 10**-26 * (
-            self.properties['density'].val[0, -1] / 10**5
-        ) * 0.03 * self.X**2 * (
-            self.properties['temperature'].val[0, -1] / 10**6)**19.99
+            self.properties['density'].now(0) / 10**5) * 0.03 * self.X**2 * (
+                self.properties['temperature'].now(0) / 10**6)**19.99
 
         self.properties['energygen'] = np.append(self.properties['energygen'],
                                                  energy_pp + energy_cno)
@@ -204,28 +196,46 @@ class Star:
         """
         radius = self.properties['radius'][-1]
 
-        self.properties['opticaldepth'].solve_differential_step(
-            radius, self.step_size, self.properties, auto_add=False)
+        for kutta_const in range(6):
 
-        self.properties['luminosity'].solve_differential_step(
-            radius, self.step_size, self.properties, auto_add=False)
+            for item in self.property_list:
+                self.properties[item].solve_runge_kutta_const(
+                    radius, self.step_size, self.properties, kutta_const)
 
-        self.properties['mass'].solve_differential_step(
-            radius, self.step_size, self.properties, auto_add=False)
+            for item in self.property_list:
+                self.properties[item].use_intermediate()
+                self.step_non_de()
 
-        self.properties['temperature'].solve_differential_step(
-            radius, self.step_size, self.properties, auto_add=False)
+        for item in self.property_list:
+            self.properties[item].solve_rk_step()
+            self.properties[item].solve_de_value(radius, self.step_size,
+                                                 self.properties)
 
-        self.properties['density'].solve_differential_step(
-            radius, self.step_size, self.properties, auto_add=False)
+        for index, item in enumerate(self.property_list):
+            self.error[index] = self.properties[item].error
 
-        self.properties['opticaldepth'].add_differential_step()
-        self.properties['luminosity'].add_differential_step()
-        self.properties['mass'].add_differential_step()
-        self.properties['density'].add_differential_step()
-        self.properties['temperature'].add_differential_step()
+        if max(self.error) <= self.error_thresh:
+            self.properties['radius'] = np.append(
+                self.properties['radius'],
+                self.properties['radius'][-1] + self.step_size)
+            for item in self.property_list:
+                self.properties[item].add_differential_step()
+                self.properties['radii'] = self.properties['radius'][-1]
 
-        self.properties['radius'] = np.append(
-            self.properties['radius'],
-            self.properties['radius'][-1] + self.step_size)
-        self.properties["radii"] = radius
+            if max(self.error) < 0.3 * self.error_thresh:
+                self.adjust_step_size()
+
+        else:
+            self.adjust_step_size()
+            self.step_de()
+
+    def adjust_step_size(self):
+        """
+        Uses a relatively quick, and smart way of adjusting the step size.
+        Can increase or decrease depending on the threshold of the
+        ratio
+        """
+        self.step_size = self.step_size * (
+            self.error_thresh / max(self.error))**.2
+        if math.isnan(self.step_size):
+            raise ValueError()
