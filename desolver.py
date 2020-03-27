@@ -51,14 +51,13 @@ class DifferentialEquation:
     def __init__(self, name="DE Solver"):
         """
         Sets initial values
-        boundary_cond (list): 1 fewer element than the DE order
-        x_val (nd.array): x values used to calculate DE
         """
         self.name = name
         self.boundaries = []
         self.val = []
         self.de_relation = None
         self.step = []
+        self.current = []
 
     def set_boundaries(self, boundary_cond):
         """
@@ -70,6 +69,7 @@ class DifferentialEquation:
         """
         self.boundaries = boundary_cond + [0]
         self.val = np.array(self.boundaries).reshape(-1, 1)
+        self.current = self.boundaries
 
     def set_derivative_relation(self, differential_equation):
         """
@@ -94,35 +94,7 @@ class DifferentialEquation:
                                                state_vars)
 
         self.val = np.array(self.boundaries).reshape(-1, 1)
-
-    def runge_kutta(self, step, x_val, step_size, state_vars):
-        """
-        Runge-kutta method provides a correction factor to a first order
-        PDE. A fourth order solution is used here. 
-
-        Args:
-            step (nd.array): The previously determined increment of steps
-            x_val (float): dependent variable at location of evaluation
-            step_size (float): Small step forward being used for calculation
-            state_vars (dict): Set of constants that can be used by de_relation
-
-        Returns:
-            (nd.array): Adjusted step after making runge-kutta correction
-        """
-        kutta1 = step[0]
-
-        kutta2 = step_size * self.de_relation(
-            self.val[:, -1] + (kutta1 / 2), x_val + step_size / 2, state_vars)
-
-        kutta3 = step_size * self.de_relation(
-            self.val[:, -1] + (kutta2 / 2), x_val + step_size / 2, state_vars)
-
-        kutta4 = step_size * self.de_relation(self.val[:, -1] + (kutta3),
-                                              x_val + step_size, state_vars)
-
-        adjusted_step = (kutta1 + 2 * kutta2 + 2 * kutta3 + kutta4) / 6
-        step[0] = adjusted_step
-        return step
+        self.current = self.boundaries
 
     def solve_differential_step(self,
                                 x_val,
@@ -147,10 +119,6 @@ class DifferentialEquation:
                     step_size * derivative
                     for derivative in reversed(self.val[1:, -1])
                 ])))
-        # Runge-kutta step has to go here
-        if len(self.step) == 2:
-            self.step = self.runge_kutta(self.step, x_val, step_size,
-                                         state_vars)
 
         self.step = self.step + self.val[:, -1]
         self.step[-1] = self.de_relation(self.step, x_val, state_vars)
@@ -163,3 +131,108 @@ class DifferentialEquation:
         Adds the small step as a new set of value to the outvalues
         """
         self.val = np.append(self.val, self.step.reshape(-1, 1), axis=1)
+        self.current = self.step
+
+    def now(self, order=None):
+        """
+        Get the value of the Differentiall equation right now
+        """
+
+        if order is not None:
+            return np.copy(self.current[order])
+
+        else:
+            return np.copy(self.current)
+
+
+class RungeKutta(DifferentialEquation):
+    def __init__(self, name="DE Solver"):
+        """
+        Sets initial values
+        """
+        self.kutta = [0, 0, 0, 0, 0, 0]
+
+        self.y_adj = [
+            lambda y, k: y, lambda y, k: y + k[0] / 4,
+            lambda y, k: y + k[0] * 3 / 32 + k[1] * 9 / 32,
+            lambda y, k: y + k[0] * 1932 / 2197 - k[1] * 7200 / 2197 + k[2] * 7296 / 2197,
+            lambda y, k: y + k[0] * 439 / 216 - k[1] * 8 + k[2] * 3680 / 513 - k[3] * 845 / 4104,
+            lambda y, k: y - k[0] * 8 / 27 + k[1] * 2 - k[2] * 3544 / 2565 + k[3] * 1859 / 4104 - k[4] * 11 / 40
+        ]
+        self.x_adj = [
+            lambda x, step: x, lambda x, step: x + step / 4,
+            lambda x, step: x + step * 3 / 8,
+            lambda x, step: x + step * 12 / 13, lambda x, step: x + step,
+            lambda x, step: x + step / 2
+        ]
+
+        self.intermediate = []
+        self.hold = []
+        self.derivative_hold = 0
+        self.error = 0
+        super().__init__(name)
+
+    def solve_runge_kutta_const(self, x_val, step_size, state_vars,
+                                kutta_const):
+        """
+        Runge-kutta method provides a correction factor to a first order
+        PDE. A fourth order solution is used here. 
+
+        Args:
+            x_val (float): dependent variable at location of evaluation
+            step_size (float): Small step forward being used for calculation
+            state_vars (dict): Set of constants that can be used by de_relation
+            kutta_const (int): Kutta constant is being solved for
+
+        Returns:
+            (nd.array): Adjusted step after making runge-kutta correction
+        """
+        if kutta_const == 0:
+            self.hold = self.now()
+        self.intermediate = self.hold
+
+        x_adj = self.x_adj[kutta_const](x_val, step_size)
+        self.intermediate[0] = self.y_adj[kutta_const](self.hold[0],
+                                                       self.kutta)
+
+        self.intermediate[1] = self.de_relation(self.intermediate, x_adj,
+                                                state_vars)
+        self.kutta[kutta_const] = step_size * self.intermediate[1]
+
+    def use_intermediate(self):
+        """
+        Sets the current value of the DE to be that which is calculated from 
+        Runge-kutta method. Usefull for when solving many DE's with Runge-kutta
+        """
+        self.current = self.intermediate
+
+    def solve_rk_step(self):
+        """
+        Use the calculated runge-kutta constants to determine the 4th and 5th
+        order solutions as well as their error between the two.
+        """
+
+        self.kutta_5th_sol = (
+            self.hold[0] + self.kutta[0] * 16 / 135 +
+            self.kutta[2] * 6656 / 12825 + self.kutta[3] * 28561 / 56430 -
+            self.kutta[4] * 9 / 50 + self.kutta[5] * 2 / 55)
+
+        self.kutta_4th_sol = (
+            self.hold[0] + self.kutta[0] * 25 / 216 +
+            self.kutta[2] * 1408 / 2565 + self.kutta[3] * 2197 / 4104 -
+            self.kutta[4] * 1 / 5 + self.kutta[5] * 0)
+
+        self.step = np.array([self.kutta_4th_sol, 0])
+
+        self.error = abs(
+            (self.kutta_4th_sol - self.kutta_5th_sol) / self.kutta_5th_sol)
+
+    def solve_de_value(self, x_val, step_size, state_vars):
+        """
+        Adjust DE value at the current point after the kutta-de step.
+        Needed because some DE's will reference other DE value and so
+        we cannot wait for them to self update
+        """
+
+        self.step[1] = self.de_relation(self.step, x_val + step_size,
+                                        state_vars)
