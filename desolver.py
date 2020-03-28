@@ -153,16 +153,19 @@ class RungeKutta(DifferentialEquation):
         self.kutta = [0, 0, 0, 0, 0, 0]
 
         self.y_adj = [
-            lambda y, k: y, lambda y, k: y + k[0] / 4,
+            lambda y, k: y,
+            lambda y, k: y + k[0] / 4,
             lambda y, k: y + k[0] * 3 / 32 + k[1] * 9 / 32,
             lambda y, k: y + k[0] * 1932 / 2197 - k[1] * 7200 / 2197 + k[2] * 7296 / 2197,
             lambda y, k: y + k[0] * 439 / 216 - k[1] * 8 + k[2] * 3680 / 513 - k[3] * 845 / 4104,
             lambda y, k: y - k[0] * 8 / 27 + k[1] * 2 - k[2] * 3544 / 2565 + k[3] * 1859 / 4104 - k[4] * 11 / 40
         ]
         self.x_adj = [
-            lambda x, step: x, lambda x, step: x + step / 4,
+            lambda x, step: x,
+            lambda x, step: x + step / 4,
             lambda x, step: x + step * 3 / 8,
-            lambda x, step: x + step * 12 / 13, lambda x, step: x + step,
+            lambda x, step: x + step * 12 / 13,
+            lambda x, step: x + step,
             lambda x, step: x + step / 2
         ]
 
@@ -189,14 +192,21 @@ class RungeKutta(DifferentialEquation):
         """
         if kutta_const == 0:
             self.hold = self.now()
-        self.intermediate = self.hold
+        self.intermediate = np.copy(self.hold)
+        #print("Hold: ", self.hold)
+        #print("Current: ", self.current)
+        #print("Inter: ", self.intermediate)
 
         x_adj = self.x_adj[kutta_const](x_val, step_size)
+        #print("Measure t at: ", x_adj)
         self.intermediate[0] = self.y_adj[kutta_const](self.hold[0],
                                                        self.kutta)
 
-        self.intermediate[1] = self.de_relation(self.intermediate, x_adj,
-                                                state_vars)
+        #print("input to DE: ", self.intermediate, x_adj, state_vars)
+        result = self.de_relation(self.intermediate, x_adj, state_vars)
+        self.intermediate[1] = result
+        #print("Just lambda: ", result)
+        #print("DE Results: ", self.intermediate[1])
         self.kutta[kutta_const] = step_size * self.intermediate[1]
 
     def use_intermediate(self):
@@ -204,7 +214,14 @@ class RungeKutta(DifferentialEquation):
         Sets the current value of the DE to be that which is calculated from 
         Runge-kutta method. Usefull for when solving many DE's with Runge-kutta
         """
-        self.current = self.intermediate
+        self.current = np.copy(self.intermediate)
+
+    def use_original(self):
+        """
+        Sets the current value to return back to the value being held in the
+        hold variable
+        """
+        self.current = np.copy(self.hold)
 
     def solve_rk_step(self):
         """

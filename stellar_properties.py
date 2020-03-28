@@ -50,6 +50,7 @@ class Star:
             cent_radii=0.01,  #m
             step_size=0.1,
             error_thresh=1e-5,
+            max_step=100000,
             name="Generic Star"):
         """
         Initializes star by deffining the equations that make up
@@ -57,6 +58,7 @@ class Star:
 
         self.name = name
         self.step_size = step_size
+        self.max_step = max_step
 
         self.cent_radii = cent_radii
         self.cent_density = cent_density
@@ -112,7 +114,9 @@ class Star:
             lambda dd, r, state: state['opacity'] * state['density'].now(0))
 
         self.properties['temperature'].set_derivative_relation(
-            lambda dd, r, state: -min(3 * state['opacity'] * state['density'].now(0) * state['luminosity'].now(0) / (16 * np.pi * a * C * dd[0]**3 * r**2), (1 - 1 / state['gamma']) * dd[0] * G * state['mass'].now(0) * state['density'].now(0) / (state['pressure'][-1] * r**2))
+            lambda dd, r, state: -min(
+                3 * state['opacity'] * state['density'].now(0) * state['luminosity'].now(0) / (16 * np.pi * a * C * dd[0]**3 * r**2),
+                (1 - 1 / state['gamma']) * dd[0] * G * state['mass'].now(0) * state['density'].now(0) / (state['pressure'][-1] * r**2))
         )
 
         self.properties['density'].set_derivative_relation(
@@ -198,6 +202,7 @@ class Star:
 
         for kutta_const in range(6):
 
+            self.step_non_de()
             for item in self.property_list:
                 self.properties[item].solve_runge_kutta_const(
                     radius, self.step_size, self.properties, kutta_const)
@@ -227,6 +232,8 @@ class Star:
 
         else:
             self.adjust_step_size()
+            for item in self.property_list:
+                self.properties[item].use_original()
             self.step_de()
 
     def adjust_step_size(self):
@@ -235,7 +242,8 @@ class Star:
         Can increase or decrease depending on the threshold of the
         ratio
         """
-        self.step_size = self.step_size * (
-            self.error_thresh / max(self.error))**.2
+        self.step_size = min(
+            self.step_size * ( self.error_thresh / max(self.error))**.2,
+            self.max_step)
         if math.isnan(self.step_size):
             raise ValueError()
