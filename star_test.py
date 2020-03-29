@@ -42,6 +42,8 @@ def example_star(starname=""):
         cent_radii=0.01
         )
 
+
+
     radii_steps = np.arange(steps)
     for radii_step in radii_steps:
         sun_like_star.step_de()
@@ -64,6 +66,24 @@ def example_star(starname=""):
         plt.savefig("%s.png" % (item))
         plt.close()
         n += 1
+
+        dtau = self.properties['opacity'].val[0,:-1] * self.properties['density'].val[0,item] 
+
+        if dtau >= -0.001 and dtau <= 0.001:
+            break
+
+    inf_tau = self.properties['opticaldepth'].val[0,len(items)]
+
+    m=0
+
+    for item in items:
+        tau = inf_tau - self.properties['opticaldepth'].val[0,item]
+        if tau >= 0.666665 and tau <= 0.666667:
+            radius = radii_steps[m] * step_size
+            break
+        m+=1
+       
+
 
     # Get user decision on saving star data
     save = input("Save this star? (y/n): ")

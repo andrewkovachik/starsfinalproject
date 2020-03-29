@@ -131,6 +131,7 @@ class Star:
             ) / self.properties['pressure_density_grad']
         )
 
+
     def setup_boundary_conditions(self):
         """
         Assigns boundary conditions based on their current value.
