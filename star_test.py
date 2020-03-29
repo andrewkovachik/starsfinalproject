@@ -89,7 +89,7 @@ def example_star(starname=""):
     print(tau)
     print(radius)
 
-        m+=1
+    m+=1
        
 
 
