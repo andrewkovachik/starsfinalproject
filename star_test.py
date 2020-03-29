@@ -67,27 +67,25 @@ def example_star(starname=""):
         plt.close()
         n += 1
 
-        dtau = self.properties['opacity'].val[0,item] * self.properties['density'].val[0,item] 
 
-        if dtau >= -0.001 and dtau <= 0.001:
-            break
-
-    print(dtau)
-
-    print("I made it to dtau")
-
-    inf_tau = self.properties['opticaldepth'].val[0,len(items)]
-
+    inf_tau = array2D[4][:-1]
+    dtau = array2d[0] * array2d[5]
+    dtau_find = 0
     m=0
 
-    for item in items:
-        tau = inf_tau - self.properties['opticaldepth'].val[0,item]
+    for i in range(len(array2D[0])):
+        tau = inf_tau - array2D[4][i]
+        dtau_value = dtau[i]
+
+        if dtau_value >= -0.001 and dtau_value <= 0.001:
+            dtau_find = i
         if tau >= 0.666665 and tau <= 0.666667:
             radius = radii_steps[m] * step_size
             break
         m+=1
+
+    print(dtau_find, dtau[dtau_find])
     print("I made it to tau")
-    print(tau)
     print(radius)
 
         
