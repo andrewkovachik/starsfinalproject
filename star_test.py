@@ -72,6 +72,10 @@ def example_star(starname=""):
         if dtau >= -0.001 and dtau <= 0.001:
             break
 
+    print(dtau)
+
+    print("I made it to dtau")
+
     inf_tau = self.properties['opticaldepth'].val[0,len(items)]
 
     m=0
@@ -81,6 +85,10 @@ def example_star(starname=""):
         if tau >= 0.666665 and tau <= 0.666667:
             radius = radii_steps[m] * step_size
             break
+    print("I made it to tau")
+    print(tau)
+    print(radius)
+
         m+=1
        
 
