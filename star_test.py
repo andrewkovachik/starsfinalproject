@@ -85,11 +85,12 @@ def example_star(starname=""):
         if tau >= 0.666665 and tau <= 0.666667:
             radius = radii_steps[m] * step_size
             break
+        m+=1
     print("I made it to tau")
     print(tau)
     print(radius)
 
-    m+=1
+        
        
 
 
