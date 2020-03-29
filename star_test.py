@@ -52,7 +52,7 @@ def example_star(starname=""):
         print(sun_like_star)
 
     n = 0
-    items = ["density", "temperature", "mass", "luminosity", "opticaldepth"]
+    items = ["density", "temperature", "mass", "luminosity", "opticaldepth","opacity"]
     # This nixt line is needed for saving data to a text file
     array2D = [[] for i in range(len(items))]
     for item in items:
@@ -67,7 +67,7 @@ def example_star(starname=""):
         plt.close()
         n += 1
 
-        dtau = self.properties['opacity'].val[0,:-1] * self.properties['density'].val[0,item] 
+        dtau = self.properties['opacity'].val[0,item] * self.properties['density'].val[0,item] 
 
         if dtau >= -0.001 and dtau <= 0.001:
             break
