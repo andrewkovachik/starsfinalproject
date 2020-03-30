@@ -88,10 +88,7 @@ def txt2array2D(filepath):
     for i in range(rows):
         line = file[i].split("\t")
         for j in range(cols):
-            if isinstance(line[j], int):
-                array[j][i] = float(line[j])
-            else:
-                array[j][i] = float("nan")
+            array[j][i] = float(line[j])
 
     text_file.close()
 

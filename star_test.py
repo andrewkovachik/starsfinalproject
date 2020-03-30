@@ -51,8 +51,8 @@ def example_star(starname=""):
 
     items = ["density", "temperature", "mass", "luminosity", "opticaldepth"]
     # This nixt line is needed for saving data to a text file
-    array2D = [[] for i in range(len(items))] # The value of item
-    array2D[0] = radii_steps * step_size / 696342000 # Units of solar radius
+    array2D = [[] for i in range(len(items) + 1)]
+    array2d[0] = radii_steps * step_size / 696342000, # Units of solar radius
     n = 1
 
     for item in items:
@@ -63,7 +63,7 @@ def example_star(starname=""):
             label=item)
         plt.xlabel("Solar Radii")
         plt.title(item)
-        plt.savefig("%s.png" % (item))
+        #plt.savefig("%s.png" % (item)) # Don't need because of plotting script
         plt.close()
         n += 1
 
