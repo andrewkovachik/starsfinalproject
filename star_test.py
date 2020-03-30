@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import stellar_properties as star
 import Use_Data as data
+import Plot_Data as plot
 
 #Constants
 G = 6.6741 * 10**-11
@@ -18,7 +19,7 @@ M=1.989*10**30
 R=696340000
 
             
-def example_star(starname=""):
+def example_star(starname="star"):
     """
     Creates an example star, prints out some of the steps as it solves
     the set of DE's. Afterwards it creates plots of some of the
@@ -52,8 +53,12 @@ def example_star(starname=""):
     items = ["density", "temperature", "mass", "luminosity", "opticaldepth"]
     # This nixt line is needed for saving data to a text file
     array2D = [[] for i in range(len(items) + 1)]
-    array2d[0] = radii_steps * step_size / 696342000, # Units of solar radius
+    array2D[0] = radii_steps * step_size / 696342000 # Units of solar radius
     n = 1
+    print()
+
+    # Get user input on wether or not they want to see the plots
+    plotshow = input("Show individual plots (y/n): ")
 
     for item in items:
         array2D[n] = sun_like_star.properties[item].val[0, :-1]
@@ -63,14 +68,19 @@ def example_star(starname=""):
             label=item)
         plt.xlabel("Solar Radii")
         plt.title(item)
-        #plt.savefig("%s.png" % (item)) # Don't need because of plotting script
+        if plotshow == 'y': plt.show()
         plt.close()
         n += 1
 
     # Get user decision on saving star data
     save = input("Save this star? (y/n): ")
     # Save the data to a text file
-    if save == 'y': data.array2D2txt(array2D, [radius] + items, starname)
+    if save == 'y': 
+        data.array2D2txt(array2D, ["radius"] + items, starname)
+        # Get user decision on showing combined star data plot
+        plotshow = input("Show combined plots? (y/n): ")
+        if plotshow == 'y': plot.plotdata(items, starname)
+
 
 if __name__ == '__main__':
     example_star()

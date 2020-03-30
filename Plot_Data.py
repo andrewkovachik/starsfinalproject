@@ -1,8 +1,11 @@
 import Use_Data as data
 import matplotlib.pyplot as plt
 from pathlib import Path
+from matplotlib import rc
 
-def plotdata(toPlot, filename, folder="Main_Sequences_txt_Files", 
+#rc('text', usetex=True) # For latex in plots
+
+def plotdata(toPlot, filename, folder="Star_Files", save=False,
 	title="", xtitle="", ytitle="", xlim=[0,0], ylim=[0,0]):
 	"""
 	plotdata takes in an array with the names of columns that are 
@@ -16,6 +19,8 @@ def plotdata(toPlot, filename, folder="Main_Sequences_txt_Files",
 	    folder (str): folder name without forward slash
 	"""
 
+	filepath = folder + "/" + filename
+
 	# Get data and header from file
 	arr, header = data.txt2array2D(filepath)
 
@@ -25,23 +30,12 @@ def plotdata(toPlot, filename, folder="Main_Sequences_txt_Files",
 	exists = False
 	label = -1
 
-	# Plotting loop, starts by checking if toPlot values are valid
-	for i in range(plotlen):
-		for j in range(headlen):
-			if toPlot[i] == header[j]:
-				exists = True
-				label = j
-				break
-
-		if not exists: # If toPlot value doesn't exist tell the user
-			print("There's no", toPlot[i], "in the", filename, "file")
+	for item in toPlot:
+		if item in header:
+		  plt.plot(arr[0], arr[header.index(item)], label=item)
 		
-		else: # Plot data
-			plt.plot(arr[0], arr[i], label=header[label])
-		
-		# Reset to find next toPlot label
-		exists = False
-		label = -1
+		else: # If toPlot value doesn't exist tell the user
+			print("There's no", name, "in the", filename, "file")
 
 	# Optional plotting things
 	if title  != "": plt.title(title)
@@ -49,8 +43,7 @@ def plotdata(toPlot, filename, folder="Main_Sequences_txt_Files",
 	if ytitle != "": plt.ylabel(ytitle)
 	if xlim != [0,0]: plt.xlim(xlim)
 	if ylim != [0,0]: plt.ylim(ylim)
+	if save: plt.savefig(filname + ".png")
+	plt.figure(1, dpi=300)
 	plt.legend()
 	plt.show()
-
-
-plotdata(["density", "temperature", "mass", "luminosity", "opticaldepth"],"star")

@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 
-def array2D2txt(array, header=[], filename="", folder="Main_Sequences_txt_Files"):
+def array2D2txt(array, header=[], filename="", folder="Star_Files"):
     """
     results2txt takes in a 2D array, a filename without an extension, and a
     folder path to create a .txt file with the values of the 2D array in
