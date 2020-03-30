@@ -26,7 +26,7 @@ def example_star(starname=""):
     """
 
     expected_radii = R
-    steps = 100
+    steps = 10000
     step_size = expected_radii / steps
 
     sun_like_star = star.Star(
@@ -47,14 +47,19 @@ def example_star(starname=""):
         sun_like_star.step_de()
         sun_like_star.step_non_de()
 
-        print(sun_like_star)
+        #print(sun_like_star)
 
     n = 0
-    items = ["density", "temperature", "mass", "luminosity", "opticaldepth"]
+    items = ["density", "temperature", "mass", "luminosity", "opticaldepth","opacity"]
     # This nixt line is needed for saving data to a text file
     array2D = [[] for i in range(len(items))]
-    for item in items:
-        array2D[n] = sun_like_star.properties[item].val[0, :-1]
+    for n,item in enumerate(items):
+        if item != "opacity":
+            array2D[n] = sun_like_star.properties[item].val[0, :-1]
+        else:
+            print(sun_like_star.properties['opacity'][:])
+            array2D[n] = sun_like_star.properties['opacity'][:-1]
+            print(sun_like_star.properties['opacity'][:])
         plt.plot(
             radii_steps * step_size / 696342000, # Units of solar radius
             array2D[n], # Plots the value of item
@@ -64,6 +69,64 @@ def example_star(starname=""):
         plt.savefig("%s.png" % (item))
         plt.close()
         n += 1
+
+    
+    dtau = [0.0]*(len(array2D[0]))
+    #print(len(dtau))
+    tau_infinity = 0
+    tau = [0.0]*(len(array2D[0]))
+    #print(len(tau))
+    radius = 0
+    #print(tau_infinity, radius)
+
+    for i in range(len(array2D[0])):
+        
+        dtau[i] = ((array2D[0][i])**2) * array2D[5][i]/abs(sun_like_star.properties["density"].val[1,i])
+        #print(dtau)
+        #print(dtau[i])
+
+
+        if dtau[i] >= -0.001 and dtau[i] <= 0.001:
+            tau_infinity = array2D[4][i]
+        
+
+
+    tau = np.array(tau_infinity - array2D[4][:] - (2/3))
+    tau = tau[~np.isnan(tau)]
+    index = tau[:].argmin()
+    tau = tau + (2/3)
+    radius = radii_steps[index] * step_size
+
+   
+
+    print("Length of Tau without nans: ", len(tau))
+
+    print("Index: ", index," Length of Tau: ",(len(tau)))
+
+    print("Tau at Index: ", tau[index])
+
+    print("Tau at Infinty: ", tau_infinity, "Radius: ",radius/696342000)
+    
+    # inf_tau = array2D[4][:-1]
+    # dtau = array2D[0] * array2D[5]
+    # dtau_find = 0
+    # m=0
+
+    # for i in range(len(array2D[0])):
+    #     tau = inf_tau - array2D[4][i]
+    #     dtau_value = dtau[i]
+
+    #     if dtau_value >= -0.001 and dtau_value <= 0.001:
+    #         dtau_find = i
+    #     if tau >= 0.666665 and tau <= 0.666667:
+    #         radius = radii_steps[m] * step_size
+    #         break
+    #     m+=1
+
+    # print(dtau_find, dtau[dtau_find])
+    # print("I made it to tau")
+    # print(radius)
+
 
     # Get user decision on saving star data
     save = input("Save this star? (y/n): ")

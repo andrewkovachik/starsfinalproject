@@ -71,7 +71,7 @@ class Star:
         self.Z = Z
         self.mu = (2 * X + 0.75 * Y + 0.5 * Z)**-1
         self.properties = {
-            "opacity": 1,
+            "opacity": np.array([]),
             "gamma": 5 / 3,
             "pressure": np.array([]),
             "energygen": np.array([]),
@@ -110,12 +110,12 @@ class Star:
         )
 
         self.properties['opticaldepth'].set_derivative_relation(
-            lambda dd, r, state: state['opacity'] * state['density'].val[0, -1]
+            lambda dd, r, state: state['opacity'][-1] * state['density'].val[0, -1]
         )
 
         self.properties['temperature'].set_derivative_relation(
             lambda dd, r, state: -min(
-                3 * state['opacity'] * state['density'].val[0, -1]
+                3 * state['opacity'][-1] * state['density'].val[0, -1]
                 * state['luminosity'].val[0, -1]
                 / (16 * np.pi * a * C * dd[0]**3 * r**2),
                 (1 - 1 / state['gamma']) * dd[0] * G * state['mass'].val[0, -1]
@@ -185,7 +185,7 @@ class Star:
             self.properties['density'].val[0, -1] / 10**3)**0.5 * (
                 self.properties['temperature'].val[0, -1])**9
 
-        self.properties['opacity'] = (1 / k_h + 1 / max(k_es, k_ff))**-1
+        self.properties['opacity'] = np.append(self.properties['opacity'][:],(1 / k_h + 1 / max(k_es, k_ff))**-1)
 
         energy_pp = 1.07 * 10**-7 * (
             self.properties['density'].val[0, -1] / 10**5) * self.X**2 * (
