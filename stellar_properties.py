@@ -69,7 +69,7 @@ class Star:
         self.cent_density = cent_density
         self.cent_opticaldepth = cent_opticaldepth
         self.cent_temperature = cent_temperature
-self.Xc = Xc
+        self.Xc = Xc
         self.X = X
         self.Y = Y
         self.Z = Z
