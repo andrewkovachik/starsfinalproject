@@ -46,6 +46,8 @@ class Star:
             X=0.55,
             Y=0.43,
             Z=0.02,
+            Xc=0.004,
+            #Xc is the carbon mass fraction
             cent_density=162200,
             cent_opticaldepth=2 / 3,
             cent_radii=0.01,  #m
@@ -53,6 +55,8 @@ class Star:
             #Initial guess for total mass and radius of star based on desired position on HR diagram
             #Define M, R above!
             cent_temperature=2*G*M*Mp/(3*Kb*R),
+            core="Hydrogen",
+            #core is one of "Hydrogen", "Helium", "Carbon"
             name="Generic Star"):
         """
         Initializes star by deffining the equations that make up
@@ -65,11 +69,12 @@ class Star:
         self.cent_density = cent_density
         self.cent_opticaldepth = cent_opticaldepth
         self.cent_temperature = cent_temperature
-
+        self.Xc = Xc
         self.X = X
         self.Y = Y
         self.Z = Z
         self.mu = (2 * X + 0.75 * Y + 0.5 * Z)**-1
+        self.core = core
         self.properties = {
             "opacity": 1,
             "gamma": 5 / 3,
@@ -144,10 +149,23 @@ class Star:
         cent_energy_cno = 8.24 * 10**-26 * (
             self.cent_density / 10**5) * 0.03 * self.X**2 * (
                 self.cent_temperature / 10**6)**19.99
+        cent_energy_He = 3.85e-8 * (
+            self.cent_density / 10**5)**2 * self.Y**3 * (
+                self.cent_temperature / 10**8)**44
+        cent_energy_C = 5.0e4 * (
+            self.cent_density / 10**5
+        ) * self.Xc**2 * (self.cent_temperature / 10**9)**30
 
         cent_mass = 4 * np.pi * self.cent_radii**3 * self.cent_density / 3
-        cent_lum = 4 * np.pi * self.cent_radii * self.cent_density * (
-            cent_energy_pp + cent_energy_cno) / 3
+        if self.core=="Hydrogen":
+            cent_lum = 4 * np.pi * self.cent_radii * self.cent_density * (
+                cent_energy_pp + cent_energy_cno) / 3
+        if self.core=="Helium":
+            cent_lum = 4 * np.pi * self.cent_radii * self.cent_density * (
+            cent_energy_He) / 3
+        if self.core=="Carbon":
+            cent_lum = 4 * np.pi * self.cent_radii * self.cent_density * (
+            cent_energy_C) / 3
         self.properties['luminosity'].set_boundaries([cent_lum])
         self.properties['mass'].set_boundaries([cent_mass])
         self.properties['opticaldepth'].set_boundaries(
@@ -194,9 +212,22 @@ class Star:
             self.properties['density'].val[0, -1] / 10**5
         ) * 0.03 * self.X**2 * (
             self.properties['temperature'].val[0, -1] / 10**6)**19.99
+        energy_He = 3.85e-8 * (
+            self.properties['density'].val[0, -1] / 10**5)**2 * self.Y**3 * (
+                self.properties['temperature'].val[0, -1] / 10**8)**44
+        energy_C = 5.0e4 * (
+            self.properties['density'].val[0, -1] / 10**5
+        ) * self.Xc**2 * (self.properties['temperature'].val[0, -1] / 10**9)**30
 
-        self.properties['energygen'] = np.append(self.properties['energygen'],
+        if self.core=="Hydrogen":
+            self.properties['energygen'] = np.append(self.properties['energygen'],
                                                  energy_pp + energy_cno)
+        if self.core=="Helium":
+            self.properties['energygen'] = np.append(self.properties['energygen'],
+                                                 energy_He)
+        if self.core=="Carbon":
+            self.properties['energygen'] = np.append(self.properties['energygen'],
+                                                 energy_C)
 
     def step_de(self):
         """
