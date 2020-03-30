@@ -75,11 +75,14 @@ def example_star(starname="star"):
     # Get user decision on saving star data
     save = input("Save this star? (y/n): ")
     # Save the data to a text file
-    if save == 'y': 
-        data.array2D2txt(array2D, ["radius"] + items, starname)
-        # Get user decision on showing combined star data plot
-        plotshow = input("Show combined plots? (y/n): ")
-        if plotshow == 'y': plot.plotdata(items, starname)
+    if save == 'y': data.array2D2txt(array2D, ["radius"] + items, starname)
+        # # Get user decision on showing combined star data plot
+        # plotshow = input("Show combined plots? (y/n): ")
+        # if plotshow == 'y': 
+        #     plot.plotdata(items, starname)
+        #     # Get user decision on saving plot
+        #     save = input("Save the combined plot? (y/n): ")
+        #         plot.plotdata(items, starname, save=True)
 
 
 if __name__ == '__main__':

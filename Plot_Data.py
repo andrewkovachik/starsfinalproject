@@ -35,7 +35,7 @@ def plotdata(toPlot, filename, folder="Star_Files", save=False,
 		  plt.plot(arr[0], arr[header.index(item)], label=item)
 		
 		else: # If toPlot value doesn't exist tell the user
-			print("There's no", name, "in the", filename, "file")
+			print("There's no", item, "in the", filename, "file")
 
 	# Optional plotting things
 	if title  != "": plt.title(title)
@@ -43,7 +43,20 @@ def plotdata(toPlot, filename, folder="Star_Files", save=False,
 	if ytitle != "": plt.ylabel(ytitle)
 	if xlim != [0,0]: plt.xlim(xlim)
 	if ylim != [0,0]: plt.ylim(ylim)
-	if save: plt.savefig(filname + ".png")
 	plt.figure(1, dpi=300)
 	plt.legend()
-	plt.show()
+	if save: plt.savefig(filepath + ".png")
+	if not save: plt.show()
+
+
+if __name__ == '__main__':
+	toPlot = ['density','temperature','opticaldepth']
+	filename = "star"
+	title = "Test Plot"
+	xtitle = "Test X Axis"
+	ytitle = "Test Y Axis"
+	plotdata(toPlot, filename, 
+						save=True, title=title, xtitle=xtitle, ytitle=ytitle)
+
+
+
