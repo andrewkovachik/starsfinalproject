@@ -77,12 +77,22 @@ def txt2array2D(filepath):
     rows = len(file) - 1
     array = [[0.0 for i in range(rows)] for j in range(cols)]
 
+    # Gets header name line from file
+    if isinstance(file[0], str):
+        header = file[0].split("\t")
+        header.pop(len(header) - 1)
+        file.pop(0)
+        rows = rows - 1
+
     # Put the values from the text file into the 2D array
     for i in range(rows):
         line = file[i].split("\t")
         for j in range(cols):
-            array[j][i] = float(line[j])
+            if isinstance(line[j], int):
+                array[j][i] = float(line[j])
+            else:
+                array[j][i] = float("nan")
 
     text_file.close()
 
-    return array
+    return array, header

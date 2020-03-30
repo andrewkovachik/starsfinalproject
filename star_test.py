@@ -49,14 +49,16 @@ def example_star(starname=""):
 
         print(sun_like_star)
 
-    n = 0
     items = ["density", "temperature", "mass", "luminosity", "opticaldepth"]
     # This nixt line is needed for saving data to a text file
-    array2D = [[] for i in range(len(items))]
+    array2D = [[] for i in range(len(items))] # The value of item
+    array2D[0] = radii_steps * step_size / 696342000 # Units of solar radius
+    n = 1
+
     for item in items:
         array2D[n] = sun_like_star.properties[item].val[0, :-1]
         plt.plot(
-            radii_steps * step_size / 696342000, # Units of solar radius
+            array2D[0], # Units of solar radius
             array2D[n], # Plots the value of item
             label=item)
         plt.xlabel("Solar Radii")
@@ -68,7 +70,7 @@ def example_star(starname=""):
     # Get user decision on saving star data
     save = input("Save this star? (y/n): ")
     # Save the data to a text file
-    if save == 'y': data.array2D2txt(array2D, items, starname)
+    if save == 'y': data.array2D2txt(array2D, [radius] + items, starname)
 
 if __name__ == '__main__':
     example_star()
