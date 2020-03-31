@@ -1,30 +1,6 @@
 import numpy as np
 
 
-def si_prefix_multiple(value, prefix):
-    """
-    Conversion function for different SI prefixes"""
-    si_prefixes = {
-        'P': 10**15,
-        'T': 10**12,
-        'G': 10**9,
-        'M': 10**6,
-        'k': 10**3,
-        'h': 10**2,
-        'da': 10**1,
-        '0': 10**0,
-        'd': 10**-1,
-        'c': 10**-2,
-        'm': 10**-3,
-        'u': 10**-6,
-        'n': 10**-9,
-        'p': 10**-12,
-        'f': 10**-15
-    }
-
-    return value * si_prefixes[prefix]
-
-
 class DifferentialEquation:
     """Alows DE's and boundary conditions to be entered
     and can solve the DE numerically for the inputed
@@ -34,7 +10,7 @@ class DifferentialEquation:
         """
         Print out useful information for debugging
         """
-        info = "\t".join("Derivative {}: {:.2e}".format(n, i)
+        info = "\t".join("{:30} {}: {:.2e}".format(self.name, n, i)
                          for n, i in enumerate(self.val[:, -1]))
 
         return info
@@ -43,7 +19,7 @@ class DifferentialEquation:
         """
         Print out useful information for debugging
         """
-        info = "\t".join("Derivative {}: {:.2e}".format(n, i)
+        info = "\t".join("{:30} {}: {:.2e}".format(self.name, n, i)
                          for n, i in enumerate(self.val[:, -1]))
 
         return info
@@ -144,6 +120,16 @@ class DifferentialEquation:
         else:
             return np.copy(self.current)
 
+    def data(self, order=None):
+        """
+        Returns full rows of data
+        """
+
+        if order:
+            return np.copy(self.val[order, :])
+        else:
+            return np.copy(self.val[0, :])
+
 
 class RungeKutta(DifferentialEquation):
     def __init__(self, name="DE Solver"):
@@ -158,7 +144,8 @@ class RungeKutta(DifferentialEquation):
             lambda y, k: y + k[0] * 3 / 32 + k[1] * 9 / 32,
             lambda y, k: y + k[0] * 1932 / 2197 - k[1] * 7200 / 2197 + k[2] * 7296 / 2197,
             lambda y, k: y + k[0] * 439 / 216 - k[1] * 8 + k[2] * 3680 / 513 - k[3] * 845 / 4104,
-            lambda y, k: y - k[0] * 8 / 27 + k[1] * 2 - k[2] * 3544 / 2565 + k[3] * 1859 / 4104 - k[4] * 11 / 40
+            lambda y, k: y - k[0] * 8 / 27 + k[1] * 2 - k[2] * 3544 / 2565 + k[3] * 1859 / 4104 - k[4] * 11 / 40,
+            lambda y, k: y
         ]
         self.x_adj = [
             lambda x, step: x,
@@ -192,22 +179,17 @@ class RungeKutta(DifferentialEquation):
         """
         if kutta_const == 0:
             self.hold = self.now()
-        self.intermediate = np.copy(self.hold)
-        #print("Hold: ", self.hold)
-        #print("Current: ", self.current)
-        #print("Inter: ", self.intermediate)
+            self.intermediate = np.copy(self.hold)
 
         x_adj = self.x_adj[kutta_const](x_val, step_size)
-        #print("Measure t at: ", x_adj)
-        self.intermediate[0] = self.y_adj[kutta_const](self.hold[0],
-                                                       self.kutta)
 
-        #print("input to DE: ", self.intermediate, x_adj, state_vars)
         result = self.de_relation(self.intermediate, x_adj, state_vars)
         self.intermediate[1] = result
-        #print("Just lambda: ", result)
-        #print("DE Results: ", self.intermediate[1])
+
         self.kutta[kutta_const] = step_size * self.intermediate[1]
+
+        self.intermediate[0] = self.y_adj[kutta_const + 1](self.hold[0],
+                                                           self.kutta)
 
     def use_intermediate(self):
         """
@@ -237,7 +219,7 @@ class RungeKutta(DifferentialEquation):
         self.kutta_4th_sol = (
             self.hold[0] + self.kutta[0] * 25 / 216 +
             self.kutta[2] * 1408 / 2565 + self.kutta[3] * 2197 / 4104 -
-            self.kutta[4] * 1 / 5 + self.kutta[5] * 0)
+            self.kutta[4] / 5 + self.kutta[5] * 0)
 
         self.step = np.array([self.kutta_4th_sol, 0])
 
