@@ -53,6 +53,7 @@ class Star:
             step_size=0.1,
             error_thresh=1e-5,
             max_step=100000,
+            min_step=0.001,
             name="Generic Star"):
         """
         Initializes star by deffining the equations that make up
@@ -61,6 +62,7 @@ class Star:
         self.name = name
         self.step_size = step_size
         self.max_step = max_step
+        self.min_step = min_step
 
         self.cent_radii = cent_radii
         self.cent_density = cent_density
@@ -242,15 +244,10 @@ class Star:
                 self.properties['radius'],
                 self.properties['radius'][-1] + self.step_size)
             for item in self.de_list:
-                if math.isnan(self.properties[item].now(0)):
-                    raise OverflowError
                 self.properties[item].add_differential_step()
                 self.properties['radii'] = self.properties['radius'][-1]
 
             self.step_non_de(auto_add=True)
-            for item in self.eq_list:
-                if math.isnan(self.properties[item].now(0)):
-                    raise OverflowError
             if max(self.error) < 0.3 * self.error_thresh:
                 self.adjust_step_size()
 
@@ -260,7 +257,18 @@ class Star:
                 self.properties[item].use_original()
             for item in self.eq_list:
                 self.properties[item].use_original()
+
+    def solve(self):
+        """
+        Runs a loop within itself until it is satisfied with the
+        outer-layer
+        """
+
+        self.check_stop()
+
+        while self.run:
             self.step_de()
+            self.check_stop()
 
     def adjust_step_size(self):
         """
@@ -268,11 +276,10 @@ class Star:
         Can increase or decrease depending on the threshold of the
         ratio
         """
-        self.step_size = min(self.step_size * 0.8 *
+        self.step_size = max(self.min_step,
+                             min(self.step_size * 0.8 *
                              (self.error_thresh / max(self.error))**.2,
-                             self.max_step)
-        if math.isnan(self.step_size):
-            self.step_size = 0 
+                             self.max_step))
 
     def de_use_intermediate(self):
         """
@@ -297,13 +304,18 @@ class Star:
 
         self.dtau = (self.properties['opacity'].now() * (self.properties['density'].now(0))**2/abs(self.properties['density'].now(1)))
 
-        if self.dtau<0.0001:
-            return True
+        if self.dtau<0.001:
+            print("Stoping based on dTau")
+            self.run = False
 
-        if self.properties['mass'].now(0) > 1.5e31:
-            return True
+        if self.properties['mass'].now(0) > 1.5e31: # Tempoary break point
+            print("Stoping based on Mass")
+            self.run = False
+
+        if self.properties['density'].now(0) < 1:
+            print("Stoping based on Density")
+            self.run = False
 
         else:
-            return False
+            self.run =  True
 
-        return 
