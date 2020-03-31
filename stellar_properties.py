@@ -20,7 +20,7 @@ Kb = 1.381 * 10**-23
 # FIND THIS
 # J/k^4/m^3
 a = 7.566 * 10**-16
-sigma = 5.67e-8 # W/m^2 * K^-4
+sigma = 5.67e-8  # W/m^2 * K^-4
 
 
 class Star:
@@ -95,7 +95,8 @@ class Star:
         }
 
         self.de_list = [
-            'opticaldepth', 'temperature', 'density', 'luminosity', 'mass'        ]
+            'opticaldepth', 'temperature', 'density', 'luminosity', 'mass'
+        ]
         self.eq_list = [
             "k_es", "k_ff", "k_h", "opacity", "pressure", "pressure_temp_grad",
             "pressure_density_grad", "energy_pp", "energy_cno", "energygen"
@@ -199,7 +200,6 @@ class Star:
         self.properties['temperature'].set_boundaries([self.cent_temperature])
         self.properties['density'].set_boundaries([self.cent_density])
 
-
     def step_non_de(self, auto_add=True):
         """Updates the variables and arrays of variables that do not depend
         on differential equations and can be calculated dirrectly.
@@ -278,8 +278,8 @@ class Star:
         """
         self.step_size = max(self.min_step,
                              min(self.step_size * 0.8 *
-                             (self.error_thresh / max(self.error))**.2,
-                             self.max_step))
+                                 (self.error_thresh / max(self.error))**.2,
+                                 self.max_step))
 
     def de_use_intermediate(self):
         """
@@ -302,13 +302,15 @@ class Star:
         Checks closeness to tau infinity
         """
 
-        self.dtau = (self.properties['opacity'].now() * (self.properties['density'].now(0))**2/abs(self.properties['density'].now(1)))
+        self.dtau = (self.properties['opacity'].now() *
+                     (self.properties['density'].now(0))**2 / abs(
+                         self.properties['density'].now(1)))
 
-        if self.dtau<0.001:
+        if self.dtau < 0.001:
             print("Stoping based on dTau")
             self.run = False
 
-        if self.properties['mass'].now(0) > 1.5e31: # Tempoary break point
+        if self.properties['mass'].now(0) > 1.5e31:  # Tempoary break point
             print("Stoping based on Mass")
             self.run = False
 
@@ -317,5 +319,4 @@ class Star:
             self.run = False
 
         else:
-            self.run =  True
-
+            self.run = True

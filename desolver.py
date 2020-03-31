@@ -139,8 +139,7 @@ class RungeKutta(DifferentialEquation):
         self.kutta = [0, 0, 0, 0, 0, 0]
 
         self.y_adj = [
-            lambda y, k: y,
-            lambda y, k: y + k[0] / 4,
+            lambda y, k: y, lambda y, k: y + k[0] / 4,
             lambda y, k: y + k[0] * 3 / 32 + k[1] * 9 / 32,
             lambda y, k: y + k[0] * 1932 / 2197 - k[1] * 7200 / 2197 + k[2] * 7296 / 2197,
             lambda y, k: y + k[0] * 439 / 216 - k[1] * 8 + k[2] * 3680 / 513 - k[3] * 845 / 4104,
@@ -148,11 +147,9 @@ class RungeKutta(DifferentialEquation):
             lambda y, k: y
         ]
         self.x_adj = [
-            lambda x, step: x,
-            lambda x, step: x + step / 4,
+            lambda x, step: x, lambda x, step: x + step / 4,
             lambda x, step: x + step * 3 / 8,
-            lambda x, step: x + step * 12 / 13,
-            lambda x, step: x + step,
+            lambda x, step: x + step * 12 / 13, lambda x, step: x + step,
             lambda x, step: x + step / 2
         ]
 
