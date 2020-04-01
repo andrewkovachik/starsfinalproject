@@ -42,8 +42,8 @@ def plotdata(toPlot,
     for item in toPlot:
         if item in header:
             plt.plot(
-                arr[0],
-                arr[header.index(item)] / max(arr[header.index(item)]),
+                arr[0,:-1],
+                arr[header.index(item),:-1] / max(arr[header.index(item)]),
                 label=item)
 
         else:  # If toPlot value doesn't exist tell the user
