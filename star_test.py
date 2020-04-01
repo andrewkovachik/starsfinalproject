@@ -67,9 +67,9 @@ def example_star(starname=""):
     data['drho/dr'] = data['drho/dr'] * (100/1)**4 * (1/1000)
     data['dM/dr'] = data['dM/dr'] /1000*(100/1)
     data['dL/dr'] = data['dL/dr'] * 1e-7*(100/1)
-    items = ["density", "temperature", "mass", "luminosity"]#, "opacity"]
+    items = ["density", "temperature", "mass", "luminosity", "opacity"]
     comps = ['drho/dr', 'dT/dr', 'dM/dr', 'dL/dr']#, 'kappa']
-    comps = ['rho(r)', 'T(r)', 'M(r)', 'L(r)']#, 'kappa']
+    comps = ['rho(r)', 'T(r)', 'M(r)', 'L(r)' 'kappa']
     # This nixt line is needed for saving data to a text file
     array2D = [[] for i in range(len(items))]
     fig, ax = plt.subplots(2,3, dpi=300)
