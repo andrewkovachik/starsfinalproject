@@ -72,6 +72,8 @@ def example_star(starname="star"):
         plt.close()
         n += 1
 
+    Bisect(Lum_error(radius,temperature[0,index],energygen[0,0], density[0,0]),density_centre)
+
     # Get user decision on saving star data
     save = input("Save this star? (y/n): ")
     # Save the data to a text file
