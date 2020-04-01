@@ -181,11 +181,11 @@ class Star:
 
         if self.core == "Helium":
             self.properties['energygen'].set_equation(
-                lambda state: state['energy_He'])
+                lambda state: state['energy_He'].now(0))
 
         if self.core == "Carbon":
             self.properties['energygen'].set_equation(
-                lambda state: state['energy_C'])
+                lambda state: state['energy_C'].now(0))
 
         self.properties['k_es'].set_equation(lambda state: 0.02 * (1 + self.X))
 
