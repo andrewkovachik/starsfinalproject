@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 
-def array2D2txt(array, header=[], filename="", folder="Main_Sequences_txt_Files"):
+def array2D2txt(array, header=[], filename="", folder="Star_Files"):
     """
     results2txt takes in a 2D array, a filename without an extension, and a
     folder path to create a .txt file with the values of the 2D array in
@@ -77,6 +77,13 @@ def txt2array2D(filepath):
     rows = len(file) - 1
     array = [[0.0 for i in range(rows)] for j in range(cols)]
 
+    # Gets header name line from file
+    if isinstance(file[0], str):
+        header = file[0].split("\t")
+        header.pop(len(header) - 1)
+        file.pop(0)
+        rows = rows - 1
+
     # Put the values from the text file into the 2D array
     for i in range(rows):
         line = file[i].split("\t")
@@ -85,4 +92,4 @@ def txt2array2D(filepath):
 
     text_file.close()
 
-    return array
+    return array, header
