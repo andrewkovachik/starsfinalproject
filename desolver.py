@@ -185,8 +185,8 @@ class RungeKutta(DifferentialEquation):
 
         self.kutta[kutta_const] = step_size * self.intermediate[1]
 
-        self.intermediate[0] = self.y_adj[kutta_const + 1](self.hold[0],
-                                                           self.kutta)
+        self.intermediate[0] = max(self.y_adj[kutta_const + 1](self.hold[0],
+                                                           self.kutta), 0)
 
     def use_intermediate(self):
         """
