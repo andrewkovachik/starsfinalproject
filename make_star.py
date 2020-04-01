@@ -25,7 +25,7 @@ def make_star(central_temperature, central_density, core_type, name):
         "energy_cno", "energy_He", "energy_C", "energygen"
     ]
 
-    print("Saving stars")
+    print("Saving star:", name)
     deriv = 0
     array2D = [[] for i in range(len(save_variable) + 1)]
     array2D[0] = star.properties['radius']
@@ -36,5 +36,5 @@ def make_star(central_temperature, central_density, core_type, name):
             variable = variable.replace("_deriv", "")
         array2D[index + 1] = star.properties[variable].data(deriv)
 
-    print("Writing star")
+    print("Writing star:", name)
     data.array2D2txt(array2D, ["radius"] + save_variable, name)
