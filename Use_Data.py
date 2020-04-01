@@ -20,11 +20,14 @@ def array2D2txt(array, header=[], filename="", folder="Star_Files"):
     # Create path to file
     filepath = folder + "/" + filename
     # Make defualt name
-    default = "star"
+    default = "star.txt"
 
     # If no file name is set come name it the default
     if filepath == folder + "/":
         filepath += default
+
+    # Add .txt extension if there is none
+    if filepath[-4:] != ".txt": filepath += ".txt"
 
     # Conditions for if a file name is given
     if os.path.exists(filepath):
