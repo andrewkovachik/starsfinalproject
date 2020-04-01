@@ -313,7 +313,9 @@ class Star:
             self.check_stop()
             if len(self.properties['radius']) % 2000 == 0:
                 print(self)
-                print(self.dtau)
+                print(self.name, self.dtau)
+
+        return self.success
 
     def adjust_step_size(self):
         """
@@ -321,10 +323,15 @@ class Star:
         Can increase or decrease depending on the threshold of the
         ratio
         """
-        self.step_size = max(self.min_step,
-                             min(self.step_size * 0.8 *
-                                 (self.error_thresh / max(self.error))**.2,
-                                 self.max_step))
+
+        if max(self.error) == 0:
+            self.step_size = self.step_size*10
+
+        else:
+            self.step_size = max(self.min_step,
+                                min(self.step_size * 0.8 *
+                                    (self.error_thresh / max(self.error))**.2,
+                                    self.max_step))
 
     def de_use_intermediate(self):
         """
@@ -354,14 +361,12 @@ class Star:
         if self.dtau < 0.001:
             print("Stoping based on dTau")
             self.run = False
+            self.success = True
 
-        elif self.properties['mass'].now(0) > 1e33:  # Tempoary break point
-            print("Stoping based on Mass")
+        elif len(self.properties['radius']) > 30000:
+            print("Stopping based on large number of iterations > 30000")
             self.run = False
-
-        elif self.properties['density'].now(0) < 1:
-            print("Stoping based on Density")
-            self.run = False
+            self.success = False
 
         else:
             self.run = True
