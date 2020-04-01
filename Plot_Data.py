@@ -104,7 +104,7 @@ def plotall(
 if __name__ == '__main__':
 	parser = arg.ArgumentParser(description = "Plots Stars!")
 	parser.add_argument('fileName',
-  										help='Enter the file name that contains the star that you want to plot')
+		help='Enter the file name that contains the star that you want to plot')
 	args = parser.parse_args()
 
 	toPlot = ['density','temperature','opticaldepth','mass','luminosity']
