@@ -9,7 +9,7 @@ def main(args):
         line = line.replace("\n","").split(", ")
         print(line)
         name = "Tc_{:.2e}_rhoc_guess{:.2e}_Core_{}".format(
-                float(line[0]), float(line[1]), line[2])
+                float(line[0]), float(line[1]), line[2], line[3])
 
         make_star(line[0], line[1], line[2], name)
 
