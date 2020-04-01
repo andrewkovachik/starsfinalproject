@@ -51,9 +51,9 @@ class Star:
             cent_temperature=1.5 * 10**7,
             cent_radii=0.01,  #m
             step_size=0.1,
-            error_thresh=1e-5,
-            max_step=100000,
-            min_step=0.001,
+            error_thresh=1e-4,
+            max_step=10000000,
+            min_step=0.1,
             core="Hydrogen",
             #core is one of "Hydrogen", "Helium", "Carbon"
             name="Generic Star"):
@@ -290,7 +290,7 @@ class Star:
                 self.properties['radii'] = self.properties['radius'][-1]
 
             self.step_non_de(auto_add=True)
-            if max(self.error) < 0.3 * self.error_thresh:
+            if max(self.error) < 0.1 * self.error_thresh:
                 self.adjust_step_size()
 
         else:
@@ -311,6 +311,9 @@ class Star:
         while self.run:
             self.step_de()
             self.check_stop()
+            if len(self.properties['radius']) % 2000 == 0:
+                print(self)
+                print(self.dtau)
 
     def adjust_step_size(self):
         """
@@ -352,11 +355,11 @@ class Star:
             print("Stoping based on dTau")
             self.run = False
 
-        if self.properties['mass'].now(0) > 1.5e31:  # Tempoary break point
+        elif self.properties['mass'].now(0) > 1e33:  # Tempoary break point
             print("Stoping based on Mass")
             self.run = False
 
-        if self.properties['density'].now(0) < 1:
+        elif self.properties['density'].now(0) < 1:
             print("Stoping based on Density")
             self.run = False
 
