@@ -1,0 +1,4 @@
+# Central_Temp, Starting_central_density, core_type
+1e7, 7e5, Hydrogen
+1e7, 7e5, Helium
+1e7, 7e5, Carbon
