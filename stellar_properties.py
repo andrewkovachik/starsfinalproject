@@ -3,6 +3,7 @@ Class defining a star and it's various differential equations.
 """
 import numpy as np
 import desolver as de
+import regular_equation as re
 
 # m/s^2
 C = 2.98 * 10**8
@@ -18,11 +19,9 @@ Kb = 1.381 * 10**-23
 # FIND THIS
 # J/k^4/m^3
 a = 7.566 * 10**-16
+sigma = 5.67e-8  # W/m^2 * K^-4
 
-#Star mass and radius inital guesses
-M=1.989*10**30
-R=696340000
-            
+
 class Star:
     """
     Class definining star. Can calculate many different
@@ -43,18 +42,18 @@ class Star:
 
     def __init__(
             self,
-            X=0.55,
-            Y=0.43,
+            X=0.70,
+            Y=0.28,
             Z=0.02,
             Xc=0.004,
-            #Xc is the carbon mass fraction
             cent_density=162200,
-            cent_opticaldepth=2 / 3,
+            cent_opticaldepth=0,
+            cent_temperature=1.5 * 10**7,
             cent_radii=0.01,  #m
             step_size=0.1,
-            #Initial guess for total mass and radius of star based on desired position on HR diagram
-            #Define M, R above!
-            cent_temperature=2*G*M*Mp/(3*Kb*R),
+            error_thresh=1e-5,
+            max_step=100000,
+            min_step=0.001,
             core="Hydrogen",
             #core is one of "Hydrogen", "Helium", "Carbon"
             name="Generic Star"):
@@ -64,11 +63,14 @@ class Star:
 
         self.name = name
         self.step_size = step_size
+        self.max_step = max_step
+        self.min_step = min_step
 
         self.cent_radii = cent_radii
         self.cent_density = cent_density
         self.cent_opticaldepth = cent_opticaldepth
         self.cent_temperature = cent_temperature
+
         self.Xc = Xc
         self.X = X
         self.Y = Y
@@ -76,18 +78,38 @@ class Star:
         self.mu = (2 * X + 0.75 * Y + 0.5 * Z)**-1
         self.core = core
         self.properties = {
-            "opacity": 1,
             "gamma": 5 / 3,
-            "pressure": np.array([]),
-            "energygen": np.array([]),
-            "density": de.DifferentialEquation("Density"),
-            "temperature": de.DifferentialEquation("Temperature"),
-            "mass": de.DifferentialEquation("Mass"),
-            "luminosity": de.DifferentialEquation("Luminosity"),
-            "opticaldepth": de.DifferentialEquation("Optical Depth"),
-            "radius": np.array([0.0000001]),
-            "radii": 0
+            "opacity": re.Equation("Opacity"),
+            "k_es": re.Equation("Electron Scattering Opacity"),
+            "k_ff": re.Equation("Free Free Scattering Opacity"),
+            "k_h": re.Equation("Hydrogen Opacity"),
+            "pressure": re.Equation("Pressure"),
+            "pressure_temp_grad": re.Equation("Pressure Temp Gradient"),
+            "pressure_density_grad": re.Equation("Pressure Density Gradient"),
+            "energygen": re.Equation("Energy Generation"),
+            "energy_pp": re.Equation("Proton-Proton Energy Generation"),
+            "energy_cno": re.Equation("CNO Cycle Energy Generation"),
+            "energy_He": re.Equation("Helium Energy Generation"),
+            "energy_C": re.Equation("CNO Cycle Energy Generation"),
+            "density": de.RungeKutta("Density"),
+            "temperature": de.RungeKutta("Temperature"),
+            "mass": de.RungeKutta("Mass"),
+            "luminosity": de.RungeKutta("Luminosity"),
+            "opticaldepth": de.RungeKutta("Optical Depth"),
+            "radius": np.array([cent_radii]),
+            "radii": cent_radii
         }
+
+        self.de_list = [
+            'opticaldepth', 'temperature', 'density', 'luminosity', 'mass'
+        ]
+        self.eq_list = [
+            "k_es", "k_ff", "k_h", "opacity", "pressure", "pressure_temp_grad",
+            "pressure_density_grad", "energy_pp", "energy_cno", "energy_He",
+            "energy_C", "energygen"
+        ]
+        self.error = [0, 0, 0, 0, 0, 0]
+        self.error_thresh = error_thresh
 
         self.setup_stellar_equations()
         self.setup_boundary_conditions()
@@ -104,37 +126,79 @@ class Star:
         defines the which element to grab
         """
         self.properties['luminosity'].set_derivative_relation(
-            lambda dd, r, state: (
-                4 * np.pi * r**2 * state['density'].val[0, -1]
-                * state["energygen"][-1]
-            )
+            lambda dd, r, state: (4 * np.pi * r**2 * state['density'].now(0) * state["energygen"].now())
         )
 
         self.properties['mass'].set_derivative_relation(
-            lambda dd, r, state: 4 * np.pi * r**2 * state['density'].val[0, -1]
-        )
+            lambda dd, r, state: 4 * np.pi * r**2 * state['density'].now(0))
 
         self.properties['opticaldepth'].set_derivative_relation(
-            lambda dd, r, state: state['opacity'] * state['density'].val[0, -1]
+            lambda dd, r, state: state['opacity'].now() * state['density'].now(0)
         )
 
         self.properties['temperature'].set_derivative_relation(
             lambda dd, r, state: -min(
-                3 * state['opacity'] * state['density'].val[0, -1]
-                * state['luminosity'].val[0, -1]
-                / (16 * np.pi * a * C * dd[0]**3 * r**2),
-                (1 - 1 / state['gamma']) * dd[0] * G * state['mass'].val[0, -1]
-                * state['density'].val[0, -1] / (state['pressure'][-1] * r**2)
-            )
+                3 * state['opacity'].now() * state['density'].now(0) * state['luminosity'].now(0) / (64*np.pi*r**2*sigma * state['temperature'].now(0)**3),
+                (1 - 1 / state['gamma']) * state['temperature'].now(0) * G * state['mass'].now(0) * state['density'].now(0) / (state['pressure'].now() * r**2))
         )
 
         self.properties['density'].set_derivative_relation(
-            lambda dd, r, state: -(
-                G * self.properties['mass'].val[0, -1] * dd[0] / r**2
-                + self.properties['pressure_temp_grad']
-                * self.properties['temperature'].val[1, -1]
-            ) / self.properties['pressure_density_grad']
+            lambda dd, r, state: -(G * state['mass'].now(0) * state['density'].now(0) / r**2 + state['pressure_temp_grad'].now() * state['temperature'].now(1)) / state['pressure_density_grad'].now()
         )
+
+        self.properties['pressure'].set_equation(
+            lambda state: ((3 * np.pi**2)**(2 / 3) * HBAR**2 * (state['density'].now(0) / Mp)**(5 / 3) / (5 * Me) + state['density'].now(0) * Kb * state['temperature'].now(0) / (self.mu * Mp) + a * state['temperature'].now(0)**4 / 3)
+        )
+
+        self.properties['pressure_density_grad'].set_equation(
+            lambda state: ((3 * np.pi**2)**(2 / 3) * HBAR**2 * (state['density'].now(0) / Mp)**(2 / 3) / (3 * Me * Mp) + Kb * state['temperature'].now(0) / (self.mu * Mp))
+        )
+
+        self.properties['pressure_temp_grad'].set_equation(
+            lambda state: (state['density'].now(0) * Kb / (self.mu * Mp) + 4 * a * state['temperature'].now(0)**3 / 3)
+        )
+
+        self.properties['energy_pp'].set_equation(
+            lambda state: (1.07e-7 * (state['density'].now(0) / 1e5) * self.X**2 * (state['temperature'].now(0) / 1e6)**4)
+        )
+
+        self.properties['energy_cno'].set_equation(
+            lambda state: (8.24e-26 * (state['density'].now(0) / 1e5) * 0.03 * self.X**2 * (state['temperature'].now(0) / 1e6)**19.9)
+        )
+
+        self.properties['energy_He'].set_equation(
+            lambda state: 3.85e-8 * (state['density'].now(0) / 1e5)**2 * self.Y**3 * (state['temperature'].now(0) / 1e8)**44
+        )
+
+        self.properties['energy_C'].set_equation(
+            lambda state: 5.0e4 * (state['density'].now(0) / 1e5) * self.Xc**2 * (state['temperature'].now(0) / 1e9)**30
+        )
+
+        if self.core == "Hydrogen":
+            self.properties['energygen'].set_equation(
+                lambda state: state['energy_pp'].now(0) + state['energy_cno'].now(0)
+            )
+
+        if self.core == "Helium":
+            self.properties['energygen'].set_equation(
+                lambda state: state['energy_He'])
+
+        if self.core == "Carbon":
+            self.properties['energygen'].set_equation(
+                lambda state: state['energy_C'])
+
+        self.properties['k_es'].set_equation(lambda state: 0.02 * (1 + self.X))
+
+        self.properties['k_ff'].set_equation(
+            lambda state: 1e24 * (self.Z + 0.0001) * (state['density'].now(0) / 1e3)**0.7 * (state['temperature'].now(0))**-3.5
+        )
+
+        self.properties['k_h'].set_equation(
+            lambda state: 2.5e-32 * (self.Z / 0.02) * (state['density'].now(0) / 1e3)**0.5 * (state['temperature'].now(0))**9
+        )
+
+        self.properties['opacity'].set_equation(
+            lambda state: (1/state['k_h'].now() + 1/max(state['k_es'].now(), state['k_ff'].now()))**-1 )
 
     def setup_boundary_conditions(self):
         """
@@ -152,20 +216,21 @@ class Star:
         cent_energy_He = 3.85e-8 * (
             self.cent_density / 10**5)**2 * self.Y**3 * (
                 self.cent_temperature / 10**8)**44
-        cent_energy_C = 5.0e4 * (
-            self.cent_density / 10**5
-        ) * self.Xc**2 * (self.cent_temperature / 10**9)**30
+        cent_energy_C = 5.0e4 * (self.cent_density / 10**5) * self.Xc**2 * (
+            self.cent_temperature / 10**9)**30
 
         cent_mass = 4 * np.pi * self.cent_radii**3 * self.cent_density / 3
-        if self.core=="Hydrogen":
+
+        if self.core == "Hydrogen":
             cent_lum = 4 * np.pi * self.cent_radii * self.cent_density * (
                 cent_energy_pp + cent_energy_cno) / 3
-        if self.core=="Helium":
+        if self.core == "Helium":
             cent_lum = 4 * np.pi * self.cent_radii * self.cent_density * (
-            cent_energy_He) / 3
-        if self.core=="Carbon":
+                cent_energy_He) / 3
+        if self.core == "Carbon":
             cent_lum = 4 * np.pi * self.cent_radii * self.cent_density * (
-            cent_energy_C) / 3
+                cent_energy_C) / 3
+
         self.properties['luminosity'].set_boundaries([cent_lum])
         self.properties['mass'].set_boundaries([cent_mass])
         self.properties['opticaldepth'].set_boundaries(
@@ -173,61 +238,14 @@ class Star:
         self.properties['temperature'].set_boundaries([self.cent_temperature])
         self.properties['density'].set_boundaries([self.cent_density])
 
-    def step_non_de(self):
+    def step_non_de(self, auto_add=True):
         """Updates the variables and arrays of variables that do not depend
         on differential equations and can be calculated dirrectly.
         """
 
-        self.properties['pressure'] = np.append(
-            self.properties['pressure'], (3 * np.pi**2)**(2 / 3) * HBAR**2 *
-            (self.properties['density'].val[0, -1] / Mp)**(5 / 3) /
-            (5 * Me) + self.properties['density'].val[0, -1] * Kb *
-            self.properties['temperature'].val[0, -1] / (self.mu * Mp) +
-            a * self.properties['temperature'].val[0, -1]**4 / 3)
-
-        self.properties['pressure_temp_grad'] = (
-            self.properties['density'].val[0, -1] * Kb / (self.mu * Mp) +
-            4 * a * self.properties['temperature'].val[0, -1]**3 / 3)
-
-        self.properties['pressure_density_grad'] = (
-            ((3 * np.pi**2)**(2 / 3) * HBAR**2 *
-             (self.properties['density'].val[0, -1] / Mp)**(2 / 3) /
-             (3 * Me * Mp)) + Kb * self.properties['temperature'].val[0, -1] /
-            (self.mu * Mp))
-
-        k_es = 0.02 * (1 + self.X)
-        k_ff = 1 * 10**24 * (self.Z + 0.0001) * (
-            self.properties['density'].val[0, -1] / 10**3)**0.7 * (
-                self.properties['temperature'].val[0, -1])**-3.5
-        k_h = 2.5 * 10**-32 * (self.Z / 0.02) * (
-            self.properties['density'].val[0, -1] / 10**3)**0.5 * (
-                self.properties['temperature'].val[0, -1])**9
-
-        self.properties['opacity'] = (1 / k_h + 1 / max(k_es, k_ff))**-1
-
-        energy_pp = 1.07 * 10**-7 * (
-            self.properties['density'].val[0, -1] / 10**5) * self.X**2 * (
-                self.properties['temperature'].val[0, -1] / 10**6)**4
-        energy_cno = 8.24 * 10**-26 * (
-            self.properties['density'].val[0, -1] / 10**5
-        ) * 0.03 * self.X**2 * (
-            self.properties['temperature'].val[0, -1] / 10**6)**19.99
-        energy_He = 3.85e-8 * (
-            self.properties['density'].val[0, -1] / 10**5)**2 * self.Y**3 * (
-                self.properties['temperature'].val[0, -1] / 10**8)**44
-        energy_C = 5.0e4 * (
-            self.properties['density'].val[0, -1] / 10**5
-        ) * self.Xc**2 * (self.properties['temperature'].val[0, -1] / 10**9)**30
-
-        if self.core=="Hydrogen":
-            self.properties['energygen'] = np.append(self.properties['energygen'],
-                                                 energy_pp + energy_cno)
-        if self.core=="Helium":
-            self.properties['energygen'] = np.append(self.properties['energygen'],
-                                                 energy_He)
-        if self.core=="Carbon":
-            self.properties['energygen'] = np.append(self.properties['energygen'],
-                                                 energy_C)
+        for equation in self.eq_list:
+            self.properties[equation].solve_step(
+                self.properties, auto_add=auto_add)
 
     def step_de(self):
         """
@@ -240,28 +258,103 @@ class Star:
         """
         radius = self.properties['radius'][-1]
 
-        self.properties['opticaldepth'].solve_differential_step(
-            radius, self.step_size, self.properties, auto_add=False)
+        for kutta_const in range(6):
 
-        self.properties['luminosity'].solve_differential_step(
-            radius, self.step_size, self.properties, auto_add=False)
+            for item in self.de_list:
+                self.properties[item].solve_runge_kutta_const(
+                    radius, self.step_size, self.properties, kutta_const)
 
-        self.properties['mass'].solve_differential_step(
-            radius, self.step_size, self.properties, auto_add=False)
+            self.de_use_intermediate()
+            self.step_non_de(auto_add=False)
+            self.eq_use_intermediate()
 
-        self.properties['temperature'].solve_differential_step(
-            radius, self.step_size, self.properties, auto_add=False)
+        for item in self.de_list:
+            self.properties[item].solve_rk_step()
+            self.properties[item].solve_de_value(radius, self.step_size,
+                                                 self.properties)
 
-        self.properties['density'].solve_differential_step(
-            radius, self.step_size, self.properties, auto_add=False)
+        for index, item in enumerate(self.de_list):
+            self.error[index] = self.properties[item].error
 
-        self.properties['opticaldepth'].add_differential_step()
-        self.properties['luminosity'].add_differential_step()
-        self.properties['mass'].add_differential_step()
-        self.properties['density'].add_differential_step()
-        self.properties['temperature'].add_differential_step()
+        if max(self.error) <= self.error_thresh:
 
-        self.properties['radius'] = np.append(
-            self.properties['radius'],
-            self.properties['radius'][-1] + self.step_size)
-        self.properties["radii"] = radius
+            self.properties['radius'] = np.append(
+                self.properties['radius'],
+                self.properties['radius'][-1] + self.step_size)
+            for item in self.de_list:
+                self.properties[item].add_differential_step()
+                self.properties['radii'] = self.properties['radius'][-1]
+
+            self.step_non_de(auto_add=True)
+            if max(self.error) < 0.3 * self.error_thresh:
+                self.adjust_step_size()
+
+        else:
+            self.adjust_step_size()
+            for item in self.de_list:
+                self.properties[item].use_original()
+            for item in self.eq_list:
+                self.properties[item].use_original()
+
+    def solve(self):
+        """
+        Runs a loop within itself until it is satisfied with the
+        outer-layer
+        """
+
+        self.check_stop()
+
+        while self.run:
+            self.step_de()
+            self.check_stop()
+
+    def adjust_step_size(self):
+        """
+        Uses a relatively quick, and smart way of adjusting the step size.
+        Can increase or decrease depending on the threshold of the
+        ratio
+        """
+        self.step_size = max(self.min_step,
+                             min(self.step_size * 0.8 *
+                                 (self.error_thresh / max(self.error))**.2,
+                                 self.max_step))
+
+    def de_use_intermediate(self):
+        """
+        Forces non de equations to return their intermediate step
+        """
+
+        for differential in self.de_list:
+            self.properties[differential].use_intermediate()
+
+    def eq_use_intermediate(self):
+        """
+        Forces non de equations to return their intermediate step
+        """
+
+        for equation in self.eq_list:
+            self.properties[equation].use_intermediate()
+
+    def check_stop(self):
+        """
+        Checks closeness to tau infinity
+        """
+
+        self.dtau = (self.properties['opacity'].now() *
+                     (self.properties['density'].now(0))**2 / abs(
+                         self.properties['density'].now(1)))
+
+        if self.dtau < 0.001:
+            print("Stoping based on dTau")
+            self.run = False
+
+        if self.properties['mass'].now(0) > 1.5e31:  # Tempoary break point
+            print("Stoping based on Mass")
+            self.run = False
+
+        if self.properties['density'].now(0) < 1:
+            print("Stoping based on Density")
+            self.run = False
+
+        else:
+            self.run = True
