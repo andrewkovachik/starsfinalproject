@@ -4,6 +4,7 @@ as well as the core type and uses them to create a star and save
 a text file.
 """
 import stellar_properties as starprop
+import Use_Data as data
 
 
 def make_star(central_temperature, central_density, core_type, name):
@@ -25,6 +26,7 @@ def make_star(central_temperature, central_density, core_type, name):
         "energy_cno", "energy_He", "energy_C", "energygen"
     ]
 
+    print("Saving stars")
     deriv = 0
     array2D = [[] for i in range(len(save_variable) + 1)]
     array2D[0] = star.properties['radius']
@@ -34,3 +36,6 @@ def make_star(central_temperature, central_density, core_type, name):
             derive = 1
             variable = variable.replace("_deriv", "")
         array2D[index + 1] = star.properties[variable].data(deriv)
+
+    print("Writing star")
+    data.array2D2txt(array2D, ["radius"] + save_variable, name)
