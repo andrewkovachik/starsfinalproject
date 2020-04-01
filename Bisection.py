@@ -41,9 +41,12 @@ def make_star(central_temperature, central_density, core_type, name):
 	        core=core_type,
 	        name=name)
 
-            if star.solve() == "true":
-                star.solve()
-            if star.solve() == "false":
+            good_solve = star.solve()
+            if good_solve == True:
+                pass
+
+            else:
+                print("Something bad happened")
 
         
 	    if Lum_error(rho_c_low) * Lum_error(rho_c) < 0:
