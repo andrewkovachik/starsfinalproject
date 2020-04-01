@@ -315,6 +315,8 @@ class Star:
                 print(self)
                 print(self.name, self.dtau)
 
+        return self.success
+
     def adjust_step_size(self):
         """
         Uses a relatively quick, and smart way of adjusting the step size.
@@ -359,14 +361,12 @@ class Star:
         if self.dtau < 0.001:
             print("Stoping based on dTau")
             self.run = False
+            self.success = True
 
-        #elif self.properties['mass'].now(0) > 1e33:  # Tempoary break point
-        #    print("Stoping based on Mass")
-        #    self.run = False
-
-        #elif self.properties['density'].now(0) < 1:
-        #    print("Stoping based on Density")
-        #    self.run = False
+        elif len(self.properties['radius']) > 30000:
+            print("Stopping based on large number of iterations > 30000")
+            self.run = False
+            self.success = False
 
         else:
             self.run = True
