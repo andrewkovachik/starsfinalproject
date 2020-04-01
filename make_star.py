@@ -6,7 +6,6 @@ a text file.
 import stellar_properties as starprop
 import Use_Data as data
 
-
 def make_star(central_temperature, central_density, core_type, name):
 
     print(central_temperature, central_density, core_type)
