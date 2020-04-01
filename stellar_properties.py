@@ -206,6 +206,10 @@ class Star:
         Recall that mass, and  luminosity have fixed boundary conditions,
         central pressure is the chosen value, and temperature and optical
         depth are adjusted so to satisfy the surface boundary conditions"""
+        
+        # Ensures that the read values are numbers not strings
+        self.cent_density = float(self.cent_density)
+        self.cent_temperature = float(self.cent_temperature)
 
         cent_energy_pp = 1.07 * 10**-7 * (
             self.cent_density / 10**5) * self.X**2 * (
