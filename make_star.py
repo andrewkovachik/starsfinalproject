@@ -7,8 +7,29 @@ import stellar_properties as starprop
 
 def make_star(central_temperature, central_density, core_type, name):
 
+    print(central_temperature, central_density, core_type)
     star = starprop.Star(
-            cent_density=central_density,
-            cent_temperature=central_temperature,
-            core=core_type,
-            name=name)
+        cent_density=float(central_density),
+        cent_temperature=float(central_temperature),
+        core=core_type,
+        name=name)
+
+    star.solve()
+
+    save_variable = [
+        'opticaldepth', 'temperature', 'density', 'luminosity', 'mass',
+        'opticaldepth_deriv', 'temperature_deriv', 'density_deriv',
+        'luminosity_deriv', 'mass_deriv', "k_es", "k_ff", "k_h", "opacity",
+        "pressure", "pressure_temp_grad", "pressure_density_grad", "energy_pp",
+        "energy_cno", "energy_He", "energy_C", "energygen"
+    ]
+
+    deriv = 0
+    array2D = [[] for i in range(len(save_variable) + 1)]
+    array2D[0] = star.properties['radius']
+
+    for index, variable in enumerate(save_variable):
+        if "_deriv" in variable:
+            derive = 1
+            variable = variable.replace("_deriv", "")
+        array2D[index + 1] = star.properties[variable].data(deriv)
