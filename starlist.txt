@@ -1,4 +1,21 @@
-# Central_Temp, Starting_central_density, core_type
-1e7, 7e5, Hydrogen
+# Central_Temp, Starting_central_density, core_type, star_type
+15368719.457, 7e5, Hydrogen, MS
+7820706.01, 7e5, Hydrogen, MS
+21518898.88, 7e5, Hydrogen, MS
+11256386.32, 7e5, Hydrogen, MS
+16897664.38, 7e5, Hydrogen, MS
+8096220.48, 7e5, Hydrogen, MS
+119676628.89, 7e5, Hydrogen, MS
+16897664.38, 7e5, Hydrogen, MS
+8096220.48, 7e5, Hydrogen, MS
+20768539.81, 7e5, Hydrogen, MS
+3566002.81, 7e5, Hydrogen, G
+666178.46, 7e5, Hydrogen, G
+592591.51, 7e5, Hydrogen, G
+3509443.87, 7e5, Hydrogen, SG
+2125406.23, 7e5, Hydrogen, SG
+1439745.29, 7e5, Hydrogen, SG
+190763.88, 7e5, Hydrogen, SG
+
 1e7, 7e5, Helium
 1e7, 7e5, Carbon
