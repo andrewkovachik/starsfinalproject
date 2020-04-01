@@ -52,7 +52,6 @@ def example_star(starname="star"):
     data['dM/dr'] = data['dM/dr'] /1000*(100/1)
     data['dL/dr'] = data['dL/dr'] * 1e-7*(100/1)
     items = ["density", "temperature", "mass", "luminosity", "opacity"]
-    comps = ['drho/dr', 'dT/dr', 'dM/dr', 'dL/dr']#, 'kappa']
     comps = ['rho(r)', 'T(r)', 'M(r)', 'L(r)' 'kappa']
 
     array2D = [[] for i in range(len(items))]
