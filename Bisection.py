@@ -41,20 +41,49 @@ def make_star(central_temperature, central_density, core_type, name):
 	        core=core_type,
 	        name=name)
 
-            if star.solve() == "true":
-                star.solve()
-            if star.solve() == "false":
+	    star_low = starprop.Star(
+	        cent_density=float(rho_c_low),
+	        cent_temperature=float(central_temperature),
+	        core=core_type,
+	        name=name)
+	    
+            star_high = starprop.Star(
+	        cent_density=float(rho_c_high),
+	        cent_temperature=float(central_temperature),
+	        core=core_type,
+	        name=name)
 
-        
-	    if Lum_error(rho_c_low) * Lum_error(rho_c) < 0:
+            good_solve = star.solve()
+            good_solve1 = star_low.solve()
+            good_solve2 = star_high.solve()
+
+            if good_solve == True:
+                pass
+            
+            else:
+                print("Something bad happened")
+
+            if good_solve1 == True:
+                pass
+            
+            else:
+                print("Something bad happened on lower limit")
+
+            if good_solve2 == True:
+                pass
+            
+            else:
+                print("Something bad happened on upper limit")
+
+            if Lum_error(star_low) * Lum_error(star) < 0:
 	        rho_c_high = rho_c
-	    if Lum_error(rho_c_high) * Lum_error(rho_c) < 0:
+	    if Lum_error(star_high) * Lum_error(star) < 0:
                 rho_c_low = rho_c
             else:
-	        if abs(Lum_error(rho_c_low)) < abs(Lum_error(rho_c_high)):
+	        if abs(Lum_error(star_low)) < abs(Lum_error(star_high)):
 	    	    rho_c_high = rho_c_low
                     rho_c_low = rho_c_high - 0.2 * rho_c
-	        if abs(Lum_error(rho_c_high)) < abs(Lum_error(rho_c_low)):
+	        if abs(Lum_error(star_high)) < abs(Lum_error(star_low)):
 	    	    rho_c_low = rho_c_high
                     rho_c_high = rho_c_low + 0.2 * rho_c
 	    if i > 30:
