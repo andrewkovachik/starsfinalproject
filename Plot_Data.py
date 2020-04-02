@@ -1,4 +1,5 @@
 import argparse as arg
+import numpy as np
 import Use_Data as data
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -124,7 +125,6 @@ def plotmain(folder="Star_Files"):
 						name = file.split("_")
 
 						if name[5] == "Hydrogen":
-								print(name[5])
 								for item in header: # Find the temp and lum columns
 										if item == 'temperature': # Add to temp
 												temperatureH.append(arr[header.index(item)][-1])
@@ -133,7 +133,6 @@ def plotmain(folder="Star_Files"):
 												luminosityH.append(arr[header.index(item)][-1] / 2.009e7)
 
 						if name[5] == "Helium":
-								print(name[5])
 								for item in header: # Find the temp and lum columns
 										if item == 'temperature': # Add to temp
 												temperatureHe.append(arr[header.index(item)][-1])
@@ -142,7 +141,6 @@ def plotmain(folder="Star_Files"):
 												luminosityHe.append(arr[header.index(item)][-1] / 2.009e7)
 
 						if name[5] == "Carbon":
-								print(name[5])
 								for item in header: # Find the temp and lum columns
 										if item == 'temperature': # Add to temp
 												temperatureC.append(arr[header.index(item)][-1])
@@ -152,12 +150,13 @@ def plotmain(folder="Star_Files"):
 
 						print("Got star", file)
 
-		plt.scatter(temperatureH, luminosityH, c="Blue", marker="^", label="Hydrogen")
-		plt.scatter(temperatureHe, luminosityHe, c="Red", marker="s", label="Helium")
-		plt.scatter(temperatureC, luminosityC, c="Green", label="Carbon")
+		plt.scatter(np.log10(temperatureH), np.log10(luminosityH), c="Blue", marker="^", label="Hydrogen")
+		plt.scatter(np.log10(temperatureHe), np.log10(luminosityHe), c="Red", marker="s", label="Helium")
+		plt.scatter(np.log10(temperatureC), np.log10(luminosityC), c="Green", label="Carbon")
 		plt.title("Main Sequence")
 		plt.ylabel("Luminosity (L$_\\odot$)")
 		plt.xlabel("Surface Temperature (K)")
+		plt.legend()
 		plt.gca().invert_xaxis()
 		plt.show()
 
