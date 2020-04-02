@@ -130,7 +130,7 @@ def plotmain(folder="Star_Files"):
 												temperatureH.append(arr[header.index(item)][-1])
 
 										elif item == 'luminosity': # Add to lum
-												luminosityH.append(arr[header.index(item)][-1] / 2.009e7)
+												luminosityH.append(arr[header.index(item)][-1] / 3.828e26)
 
 						if name[5] == "Helium":
 								for item in header: # Find the temp and lum columns
@@ -138,7 +138,7 @@ def plotmain(folder="Star_Files"):
 												temperatureHe.append(arr[header.index(item)][-1])
 
 										elif item == 'luminosity': # Add to lum
-												luminosityHe.append(arr[header.index(item)][-1] / 2.009e7)
+												luminosityHe.append(arr[header.index(item)][-1] / 3.828e26)
 
 						if name[5] == "Carbon":
 								for item in header: # Find the temp and lum columns
@@ -146,18 +146,35 @@ def plotmain(folder="Star_Files"):
 												temperatureC.append(arr[header.index(item)][-1])
 
 										elif item == 'luminosity': # Add to lum
-												luminosityC.append(arr[header.index(item)][-1] / 2.009e7)
+												luminosityC.append(arr[header.index(item)][-1] / 3.828e26)
 
 						print("Got star", file)
 
-		plt.scatter(np.log10(temperatureH), np.log10(luminosityH), c="Blue", marker="^", label="Hydrogen")
-		plt.scatter(np.log10(temperatureHe), np.log10(luminosityHe), c="Red", marker="s", label="Helium")
-		plt.scatter(np.log10(temperatureC), np.log10(luminosityC), c="Green", label="Carbon")
+		plt.scatter(np.log10(temperatureH), np.log10(luminosityH), c="Blue", marker="^", label="Hydrogen", alpha=0.7)
+		plt.scatter(np.log10(temperatureHe), np.log10(luminosityHe), c="Red", marker="s", label="Helium", alpha=0.7)
+		plt.scatter(np.log10(temperatureC), np.log10(luminosityC), c="Green", label="Carbon", alpha=0.7)
 		plt.title("Main Sequence")
-		plt.ylabel("Luminosity (L$_\\odot$)")
-		plt.xlabel("Surface Temperature (K)")
+		plt.ylabel("log(Luminosity (L$_\\odot$))")
+		plt.xlabel("log(Surface Temperature (K))")
 		plt.legend()
 		plt.gca().invert_xaxis()
+		ax = plt.gca()
+
+		ax.axvspan(np.log10(35000),np.log10(30000),alpha=0.4, color="xkcd:sky")
+		ax.axvspan(np.log10(30000),np.log10(10000),alpha=0.4, color="xkcd:powder blue")
+		ax.axvspan(np.log10(10000),np.log10(7500),alpha=0.4, color="xkcd:pale blue")
+		ax.axvspan(np.log10(6000),np.log10(7500),alpha=0.4, color="xkcd:off white")
+		ax.axvspan(np.log10(5200),np.log10(6000),alpha=0.4, color="xkcd:light yellow")
+		ax.axvspan(np.log10(3700),np.log10(5200),alpha=0.4, color="xkcd:yellow orange")
+		ax.axvspan(np.log10(1000),np.log10(3700),alpha=0.4, color="xkcd:orange red")
+
+		plt.text(np.log10(12500),-5,               '$B$', color='xkcd:dark grey', zorder=100)
+		plt.text(np.log10((10000-7500)/2+7500),-5, '$A$', color='xkcd:dark grey', zorder=100)
+		plt.text(np.log10((7500-6000)/2+6000),-5,  '$F$', color='xkcd:dark grey', zorder=100)
+		plt.text(np.log10((6000-5200)/2+5300),-5,  '$G$', color='xkcd:dark grey', zorder=100)
+		plt.text(np.log10((5200-3700)/2+3850),-5,  '$K$', color='xkcd:dark grey', zorder=100)
+		plt.text(np.log10((3700-1000)/2+1000),-5,  '$M$', color='xkcd:dark grey', zorder=100)
+
 		plt.show()
 
 
