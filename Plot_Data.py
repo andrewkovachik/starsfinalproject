@@ -107,31 +107,59 @@ def plotall(toPlot,
 
 
 def plotmain(folder="Star_Files"):
-    files = listdir(folder + "/") # Get list of files in folder
-    # Make temp and lum arrays
-    temperature = []
-    luminosity  = []
+		files = listdir(folder + "/") # Get list of files in folder
+		# Make temp and lum arrays
+		temperatureH = []
+		luminosityH  = []
+		temperatureHe = []
+		luminosityHe  = []
+		temperatureC = []
+		luminosityC  = []
 
-    for file in files: # Loop through the files
-        if file[-4:] == ".txt": # If it's a text file
-            # Get the text file data
-            arr, header = data.txt2array2D(folder + "/" + file)
+		for file in files: # Loop through the files
+				if file[-4:] == ".txt": # If it's a text file
+						# Get the text file data
+						arr, header = data.txt2array2D(folder + "/" + file)
 
-            for item in header: # Find the temp and lum columns
-                if item == 'temperature': # Add to temp
-                    temperature.append(arr[header.index(item)][-1])
+						name = file.split("_")
 
-                elif item == 'luminosity': # Add to lum
-                    luminosity.append(arr[header.index(item)][-1] / 2.009e7)
+						if name[5] == "Hydrogen":
+								print(name[5])
+								for item in header: # Find the temp and lum columns
+										if item == 'temperature': # Add to temp
+												temperatureH.append(arr[header.index(item)][-1])
 
-            print("Got star", file)
+										elif item == 'luminosity': # Add to lum
+												luminosityH.append(arr[header.index(item)][-1] / 2.009e7)
 
-    plt.scatter(temperature, luminosity)
-    plt.title("Main Sequence")
-    plt.ylabel("Luminosity (L$_\\odot$)")
-    plt.xlabel("Surface Temperature (K)")
-    plt.gca().invert_xaxis()
-    plt.show()
+						if name[5] == "Helium":
+								print(name[5])
+								for item in header: # Find the temp and lum columns
+										if item == 'temperature': # Add to temp
+												temperatureH.append(arr[header.index(item)][-1])
+
+										elif item == 'luminosity': # Add to lum
+												luminosityH.append(arr[header.index(item)][-1] / 2.009e7)
+
+						if name[5] == "Carbon":
+								print(name[5])
+								for item in header: # Find the temp and lum columns
+										if item == 'temperature': # Add to temp
+												temperatureH.append(arr[header.index(item)][-1])
+
+										elif item == 'luminosity': # Add to lum
+												luminosityH.append(arr[header.index(item)][-1] / 2.009e7)
+
+						print("Got star", file)
+
+		plt.scatter(temperatureH, luminosityH, c="Blue", marker="^", label="Hydrogen")
+		plt.scatter(temperatureHe, luminosityHe, c="Red", marker="s", label="Helium")
+		plt.scatter(temperatureC, luminosityC, c="Green", label="Carbon")
+		plt.title("Main Sequence")
+		plt.ylabel("Luminosity (L$_\\odot$)")
+		plt.xlabel("Surface Temperature (K)")
+		plt.gca().invert_xaxis()
+		plt.show()
 
 
 
