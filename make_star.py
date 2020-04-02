@@ -29,18 +29,14 @@ import Use_Data as data
 def make_star(central_temperature, central_density, core_type, name):
 
     rho_c = central_density
-    rho_c_low =  rho_c -  0.6*rho_c
-    rho_c_high = rho_c + 0.6*rho_c
-    step = rho_c * 0.2
-    tolerance = 0.001
+    rho_c_low =  rho_c - 0.6 * rho_c
+    rho_c_high = rho_c + 0.6 * rho_c
+    tolerance = 0.01
     i = 1
     error =10000
 
     while error > tolerance:
 
-        print(central_temperature, rho_c_low, core_type)
-        print(central_temperature, rho_c, core_type)
-        print(central_temperature, rho_c_high, core_type)
         star = starprop.Star(
             cent_density=float(rho_c),
             cent_temperature=float(central_temperature),
@@ -63,63 +59,71 @@ def make_star(central_temperature, central_density, core_type, name):
         good_solve1 = star_low.solve()
         good_solve2 = star_high.solve()
 
-        print("Low Error: ", (Lum_error(star_low)))
-        print("Regular Error: ", (Lum_error(star)))
-        print("High Error: ", (Lum_error(star_high)))
+        low_err = Lum_error(star_low)
+        reg_err = Lum_error(star)
+        high_err = Lum_error(star_high)
+        all_err = [low_err, reg_err, high_err]
 
         if good_solve == True:
             pass
-
         else:
-            print("Something bad happened")
+            pass
 
         if good_solve1 == True:
             pass
-
         else:
-            print("Something bad happened on lower limit")
-
+            rho_c_low = (rho_c + rho_c_low)/2
         if good_solve2 == True:
             pass
-
         else:
-            print("Something bad happened on upper limit")
+            rho_c_high = (rho_c + rho_c_high)/2
 
         error = Lum_error(star)
 
-        if Lum_error(star_low) * Lum_error(star) < 0:
-            rho_c_high = rho_c
-        elif Lum_error(star_high) * Lum_error(star) < 0:
-            rho_c_low = rho_c
+        if all(err > 0 for err in all_err):
+            diff = rho_c_high - rho_c
 
-        elif abs(Lum_error(star_low)) < 2.0 or abs(Lum_error(star_high)) < 2.0 or abs(Lum_error(star)) < 2.0:
+            if low_err < reg_err:
+                rho_c = rho_c_low
 
-            if abs(Lum_error(star)) < min(abs(Lum_error(star_low)),abs(Lum_error(star_high))):
-                rho_c_high = rho_c + (rho_c_high - rho_c)/10
-                rho_c_low = rho_c  - (rho_c - rho_c_low)/10
+            elif high_err < reg_err:
+                rho_c = rho_c_high
 
-            elif abs(Lum_error(star_low)) < abs(Lum_error(star_high)):
-                print("1")
-                rho_c_high = (rho_c + rho_c_low) / 2
-                rho_c_low = rho_c_low - (rho_c - rho_c_low) / 2
             else:
-                print("2")
-                rho_c_low = (rho_c + rho_c_high) / 2
-                rho_c_high = rho_c_high + (rho_c_high - rho_c) / 2
-            
+                diff = diff*np.pi
+
+
+            rho_c_high = rho_c + diff
+            rho_c_low = rho_c - diff
+            rho_c_low = max(5000, rho_c_low)
+
+        elif all(err < 0 for err in all_err):
+            diff = rho_c_high - rho_c
+
+            if low_err > reg_err:
+                rho_c = rho_c_low
+
+            elif high_err > reg_err:
+                rho_c = rho_c_high
+
+            else:
+                diff = diff*np.pi
+
+            rho_c_high = rho_c + diff
+            rho_c_low =  rho_c - diff
+            rho_c_low = max(5000, rho_c_low)
+
         else:
-            if abs(Lum_error(star_low)) < abs(Lum_error(star_high)):
-                print("3")
-                rho_c_high = rho_c_low
-                rho_c_low = rho_c_high - (0.2 * rho_c)
-            if abs(Lum_error(star_high)) < abs(Lum_error(star_low)):
-                print("4")
-                rho_c_low = rho_c_high
-                rho_c_high = rho_c_low + (0.2 * rho_c)
+            if (reg_err * low_err) < 0:
+                diff = rho_c_high - rho_c
+                diff = diff/5
+                rho_c_high = rho_c + diff
+                rho_c_low = rho_c - diff
+
         if i > 30:
+            print("Outside of tolerance")
             break
 
-        rho_c = (rho_c_low + rho_c_high) / 2.0
         i += 1
 
     save_variable = [
