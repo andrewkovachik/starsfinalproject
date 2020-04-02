@@ -89,8 +89,8 @@ def plotall(toPlot,
         if file[-4:] == ".txt":  # Only continue for text files
 
             name = file.split("_") # Get file name to make title
-            title = (name[5] + ' Core, ' + name[7][:2] + ' Star, T_c = ' + name[1] 
-				+ ', rho_c = ' + name[3][5:])
+            title = (name[5] + ' Core, ' + name[7][:2] + ' Star, T$_c$ = ' + name[1] 
+				+ ', $\\rho_c$ = ' + name[3][5:])
 
             # Plot data with the proper title
             plotdata(
@@ -100,6 +100,8 @@ def plotall(toPlot,
                 title=title,
                 xtitle='Radius (m)',
                 ytitle='Components / Max Value')
+
+
 
 
 def plotmain(folder="Star_Files"):
