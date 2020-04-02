@@ -29,8 +29,8 @@ import Use_Data as data
 def make_star(central_temperature, central_density, core_type, name):
 
     rho_c = central_density
-    rho_c_low =  rho_c - 0.1 * rho_c
-    rho_c_high = rho_c + 0.1 * rho_c
+    rho_c_low =  rho_c -  0.6*rho_c
+    rho_c_high = rho_c + 0.6*rho_c
     step = rho_c * 0.2
     tolerance = 0.001
     i = 1
