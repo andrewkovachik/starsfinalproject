@@ -2,6 +2,7 @@
 Class defining a star and it's various differential equations.
 """
 import numpy as np
+import math
 import desolver as de
 import regular_equation as re
 
@@ -78,7 +79,6 @@ class Star:
         self.mu = (2 * X + 0.75 * Y + 0.5 * Z)**-1
         self.core = core
         self.properties = {
-            "gamma": 5 / 3,
             "opacity": re.Equation("Opacity"),
             "k_es": re.Equation("Electron Scattering Opacity"),
             "k_ff": re.Equation("Free Free Scattering Opacity"),
@@ -97,7 +97,8 @@ class Star:
             "luminosity": de.RungeKutta("Luminosity"),
             "opticaldepth": de.RungeKutta("Optical Depth"),
             "radius": np.array([cent_radii]),
-            "radii": cent_radii
+            "radii": cent_radii,
+            "gamma": 5 / 3,
         }
 
         self.de_list = [
@@ -198,7 +199,9 @@ class Star:
         )
 
         self.properties['opacity'].set_equation(
-            lambda state: (1/state['k_h'].now() + 1/max(state['k_es'].now(), state['k_ff'].now()))**-1 )
+            lambda state: (state['k_h'].now()*max(state['k_es'].now(),state['k_ff'].now())/(state['k_h'].now()+max(state['k_es'].now(),state['k_ff'].now()))))
+
+            # (1/state['k_h'].now() + 1/max(state['k_es'].now(), state['k_ff'].now()))**-1 )
 
     def setup_boundary_conditions(self):
         """
@@ -261,6 +264,7 @@ class Star:
         they all use the same input values.
         """
         radius = self.properties['radius'][-1]
+        nan_problem = False
 
         for kutta_const in range(6):
 
@@ -280,7 +284,25 @@ class Star:
         for index, item in enumerate(self.de_list):
             self.error[index] = self.properties[item].error
 
-        if max(self.error) <= self.error_thresh:
+        for item in self.eq_list:
+            if math.isnan(self.properties[item].now(0)):
+                nan_problem = True
+        for item in self.de_list:
+            if math.isnan(self.properties[item].now(0)):
+                nan_problem = True
+        for item in self.de_list:
+            if math.isnan(self.properties[item].now(1)):
+                nan_problem = True
+
+        if nan_problem==True:
+            print("Found nan")
+            self.step_size = self.step_size/2
+            for item in self.de_list:
+                self.properties[item].use_original()
+            for item in self.eq_list:
+                self.properties[item].use_original()
+
+        elif max(self.error) <= self.error_thresh:
 
             self.properties['radius'] = np.append(
                 self.properties['radius'],

@@ -34,10 +34,13 @@ def make_star(central_temperature, central_density, core_type, name):
     step = rho_c * 0.2
     tolerance = 0.001
     i = 1
+    error =10000
 
-    while ((rho_c_high - rho_c_low) / 2.0) > tolerance:
+    while error > tolerance:
 
+        print(central_temperature, rho_c_low, core_type)
         print(central_temperature, rho_c, core_type)
+        print(central_temperature, rho_c_high, core_type)
         star = starprop.Star(
             cent_density=float(rho_c),
             cent_temperature=float(central_temperature),
@@ -82,24 +85,35 @@ def make_star(central_temperature, central_density, core_type, name):
         else:
             print("Something bad happened on upper limit")
 
+        error = Lum_error(star)
+
         if Lum_error(star_low) * Lum_error(star) < 0:
             rho_c_high = rho_c
         elif Lum_error(star_high) * Lum_error(star) < 0:
             rho_c_low = rho_c
 
-        elif abs(Lum_error(star_low)) or abs(Lum_error(star_high)) < 1.0:
-            if abs(Lum_error(star_low)) < abs(Lum_error(star_high)):
+        elif abs(Lum_error(star_low)) < 2.0 or abs(Lum_error(star_high)) < 2.0 or abs(Lum_error(star)) < 2.0:
+
+            if abs(Lum_error(star)) < min(abs(Lum_error(star_low)),abs(Lum_error(star_high))):
+                rho_c_high = rho_c + (rho_c_high - rho_c)/10
+                rho_c_low = rho_c  - (rho_c - rho_c_low)/10
+
+            elif abs(Lum_error(star_low)) < abs(Lum_error(star_high)):
+                print("1")
                 rho_c_high = (rho_c + rho_c_low) / 2
-                rho_c_low = rho_c_low - (rho_c + rho_c_low) / 2
+                rho_c_low = rho_c_low - (rho_c - rho_c_low) / 2
             else:
+                print("2")
                 rho_c_low = (rho_c + rho_c_high) / 2
-                rho_c_high = rho_c_high - (rho_c + rho_c_high) / 2
+                rho_c_high = rho_c_high + (rho_c_high - rho_c) / 2
             
         else:
             if abs(Lum_error(star_low)) < abs(Lum_error(star_high)):
+                print("3")
                 rho_c_high = rho_c_low
                 rho_c_low = rho_c_high - (0.2 * rho_c)
             if abs(Lum_error(star_high)) < abs(Lum_error(star_low)):
+                print("4")
                 rho_c_low = rho_c_high
                 rho_c_high = rho_c_low + (0.2 * rho_c)
         if i > 30:
@@ -107,14 +121,6 @@ def make_star(central_temperature, central_density, core_type, name):
 
         rho_c = (rho_c_low + rho_c_high) / 2.0
         i += 1
-
-    star = starprop.Star(
-        cent_density=float(rho_c),
-        cent_temperature=float(central_temperature),
-        core=core_type,
-        name=name)
-
-    star.solve()
 
     save_variable = [
         'opticaldepth', 'temperature', 'density', 'luminosity', 'mass',

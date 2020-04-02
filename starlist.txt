@@ -1,5 +1,5 @@
 # Central_Temp, Starting_central_density, core_type, star_type
-15368719.457, 7e5, Hydrogen, MS
+15368719.457, 315000, Hydrogen, MS
 7820706.01, 7e5, Hydrogen, MS
 21518898.88, 7e5, Hydrogen, MS
 11256386.32, 7e5, Hydrogen, MS

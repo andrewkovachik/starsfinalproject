@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 
 class DifferentialEquation:
@@ -181,12 +182,15 @@ class RungeKutta(DifferentialEquation):
         x_adj = self.x_adj[kutta_const](x_val, step_size)
 
         result = self.de_relation(self.intermediate, x_adj, state_vars)
+        if math.isnan(result):
+            print(self.name)
+            for item in state_vars:
+                print(item, state_vars[item])
         self.intermediate[1] = result
 
         self.kutta[kutta_const] = step_size * self.intermediate[1]
 
-        self.intermediate[0] = max(self.y_adj[kutta_const + 1](self.hold[0],
-                                                           self.kutta), 0)
+        self.intermediate[0] = max(self.y_adj[kutta_const + 1](self.hold[0], self.kutta), 0)
 
     def use_intermediate(self):
         """
@@ -218,7 +222,7 @@ class RungeKutta(DifferentialEquation):
             self.kutta[2] * 1408 / 2565 + self.kutta[3] * 2197 / 4104 -
             self.kutta[4] / 5 + self.kutta[5] * 0)
 
-        self.step = np.array([self.kutta_4th_sol, 0])
+        self.step = np.array([max(self.kutta_4th_sol, 0), 0])
 
         self.error = abs(
             (self.kutta_4th_sol - self.kutta_5th_sol) / self.kutta_5th_sol)
