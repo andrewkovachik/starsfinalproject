@@ -24,9 +24,9 @@ def plotdata(
 	which contains the files as well as many plotting options
 
 	Args:
-            toPlot (np.array): array of names of values to be plotted
-            filename (str): identifier for file
-            folder (str): folder name without forward slash
+			toPlot (np.array): array of names of values to be plotted
+			filename (str): identifier for file
+			folder (str): folder name without forward slash
 	"""
 
 	filepath = folder + "/" + filename
@@ -65,6 +65,7 @@ def plotdata(
 	plt.legend()
 	if save: plt.savefig(filepath + ".png")
 	if not save: plt.show()
+	plt.close()
 
 
 def plotall(
@@ -84,8 +85,8 @@ def plotall(
 	that end in .txt
 	
 	Args:
-	    toPlot (np.array): array of names of values to be plotted
-	    folder (str): folder name without forward slash
+		toPlot (np.array): array of names of values to be plotted
+		folder (str): folder name without forward slash
 	"""
 	files = listdir(folder + "/") # Get list of files in folder
 
