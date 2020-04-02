@@ -87,7 +87,6 @@ def plotall(toPlot,
 
     for file in files:
         if file[-4:] == ".txt":  # Only continue for text files
-
             name = file.split("_") # Get file name to make title
             title = (name[5] + ' Core, ' + name[7][:2] + ' Star, T$_c$ = ' + name[1] 
 				+ ', $\\rho_c$ = ' + name[3][5:])
@@ -101,8 +100,8 @@ def plotall(toPlot,
                 xtitle='Radius (m)',
                 ytitle='Components / Max Value')
 
-    print("Plotted star:", title)
-    print()
+            print("Plotted star:", title)
+            print()
 
 
 
@@ -114,21 +113,23 @@ def plotmain(folder="Star_Files"):
     luminosity  = []
 
     for file in files: # Loop through the files
-    	if file[-4:] == ".txt": # If it's a text file
-    		# Get the text file data
-    		arr, header = data.txt2array2D(folder + "/" + file)
+        if file[-4:] == ".txt": # If it's a text file
+            # Get the text file data
+            arr, header = data.txt2array2D(folder + "/" + file)
 
-    		for item in header: # Find the temp and lum columns
-    			if item == 'temperature': # Add to temp
-    				temperature.append(arr[header.index(item)][-1])
+            for item in header: # Find the temp and lum columns
+                if item == 'temperature': # Add to temp
+                    temperature.append(arr[header.index(item)][-1])
 
-    			elif item == 'luminosity': # Add to lum
-    				luminosity.append(arr[header.index(item)][-1])
+                elif item == 'luminosity': # Add to lum
+                    luminosity.append(arr[header.index(item)][-1] / 2.009e7)
 
-    plt.scatter(luminosity, temperature)
+            print("Got star", file)
+
+    plt.scatter(temperature, luminosity)
     plt.title("Main Sequence")
-    plt.xlabel("Luminosity")
-    plt.ylabel("Temperature")
+    plt.xlabel("Luminosity (L$_\\odot$)")
+    plt.ylabel("Surface Temperature (K)")
     plt.show()
 
 
