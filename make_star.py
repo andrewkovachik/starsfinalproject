@@ -87,8 +87,6 @@ def make_star(central_temperature, central_density, core_type, name):
         elif Lum_error(star_high) * Lum_error(star) < 0:
             rho_c_low = rho_c
 
-        if abs(Lum_error(star) < min(abs(Lum_error(star_low)), abs(Lum_error(star_high))):
-            
         else:
             if abs(Lum_error(star_low)) < abs(Lum_error(star_high)):
                 rho_c_high = rho_c_low
