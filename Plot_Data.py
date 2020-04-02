@@ -24,9 +24,9 @@ def plotdata(toPlot,
 	which contains the files as well as many plotting options
 
 	Args:
-            toPlot (np.array): array of names of values to be plotted
-            filename (str): identifier for file
-            folder (str): folder name without forward slash
+			toPlot (np.array): array of names of values to be plotted
+			filename (str): identifier for file
+			folder (str): folder name without forward slash
 	"""
 
     filepath = folder + "/" + filename
@@ -59,7 +59,7 @@ def plotdata(toPlot,
     if ylim != [0, 0]: plt.ylim(ylim)
     plt.figure(1, dpi=300)
     plt.legend()
-    if save: plt.savefig(filepath + ".png")
+    if save: plt.savefig(filepath[:-4] + ".png")
     if not save: plt.show()
     plt.close()
 
@@ -80,17 +80,17 @@ def plotall(toPlot,
 	that end in .txt
 	
 	Args:
-	    toPlot (np.array): array of names of values to be plotted
-	    folder (str): folder name without forward slash
+		toPlot (np.array): array of names of values to be plotted
+		folder (str): folder name without forward slash
 	"""
     files = listdir(folder + "/")  # Get list of files in folder
 
     for file in files:
         if file[-4:] == ".txt":  # Only continue for text files
 
-            name = file.split("_")  # Get file name to make title
-            print(name)
-            title = (name[5] + ' Core, T_c = ' + name[1] + ', rho_c = ' + name[3][5:])
+            name = file.split("_") # Get file name to make title
+            title = (name[5] + ' Core, ' + name[7][:2] + ' Star, T$_c$ = ' + name[1] 
+				+ ', $\\rho_c$ = ' + name[3][5:])
 
             # Plot data with the proper title
             plotdata(
@@ -101,24 +101,62 @@ def plotall(toPlot,
                 xtitle='Radius (m)',
                 ytitle='Components / Max Value')
 
+    print("Plotted star:", title)
+    print()
+
+
+
+
+def plotmain(folder="Star_Files"):
+    files = listdir(folder + "/") # Get list of files in folder
+    # Make temp and lum arrays
+    temperature = []
+    luminosity  = []
+
+    for file in files: # Loop through the files
+    	if file[-4:] == ".txt": # If it's a text file
+    		# Get the text file data
+    		arr, header = data.txt2array2D(folder + "/" + file)
+
+    		for item in header: # Find the temp and lum columns
+    			if item == 'temperature': # Add to temp
+    				temperature.append(arr[header.index(item)][-1])
+
+    			elif item == 'luminosity': # Add to lum
+    				luminosity.append(arr[header.index(item)][-1])
+
+    plt.scatter(luminosity, temperature)
+    plt.title("Main Sequence")
+    plt.xlabel("Luminosity")
+    plt.ylabel("Temperature")
+    plt.show()
+
+
+
 
 if __name__ == '__main__':
     parser = arg.ArgumentParser(description="Plots Stars!")
     parser.add_argument(
-        '-fileName',
+        'fileName',
         help='Enter the file name that contains the star that you want to plot',
         default=""
     )
-    args = parser.parse_args()
 
+    args = parser.parse_args()
     toPlot = ['density', 'temperature', 'opticaldepth', 'mass', 'luminosity']
     #filename = "Tc_1.54e+07_rhoc_guess7.00e+05_Core_Hydrogen_Type_MS.txt"
     title = "Test Plot"
     xtitle = "Test X Axis"
     ytitle = "Test Y Axis"
 
-    if args.fileName == "":
+    if args.fileName == "all":
         plotall(toPlot)
+        print("All star plot png's created and saved")
+
+    elif args.fileName == "main":
+        plotmain()
+        print("Main sequence plotted (No save)")
+        
     else:
         plotdata(
             toPlot,
@@ -127,3 +165,6 @@ if __name__ == '__main__':
             title=title,
             xtitle=xtitle,
             ytitle=ytitle)
+        print("Star:", args.fileName, "plot saved")
+    print()
+
