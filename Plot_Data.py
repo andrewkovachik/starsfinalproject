@@ -128,8 +128,9 @@ def plotmain(folder="Star_Files"):
 
     plt.scatter(temperature, luminosity)
     plt.title("Main Sequence")
-    plt.xlabel("Luminosity (L$_\\odot$)")
-    plt.ylabel("Surface Temperature (K)")
+    plt.ylabel("Luminosity (L$_\\odot$)")
+    plt.xlabel("Surface Temperature (K)")
+    plt.gca().invert_xaxis()
     plt.show()
 
 
