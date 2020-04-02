@@ -51,9 +51,9 @@ class Star:
             cent_temperature=1.5 * 10**7,
             cent_radii=0.01,  #m
             step_size=0.1,
-            error_thresh=1e-4,
-            max_step=10000000,
-            min_step=0.1,
+            error_thresh=1e-5,
+            max_step=100000,
+            min_step=0.001,
             core="Hydrogen",
             #core is one of "Hydrogen", "Helium", "Carbon"
             name="Generic Star"):
@@ -312,10 +312,28 @@ class Star:
             self.step_de()
             self.check_stop()
             if len(self.properties['radius']) % 2000 == 0:
-                print(self)
-                print(self.name, self.dtau)
+                pass
+                #print(self)
+                #print(self.name, self.dtau)
 
+        self.remove_extra()
         return self.success
+
+    def remove_extra(self):
+
+        tau_infinity = self.properties['opticaldepth'].now(0)
+
+        tau_adjusted = abs((tau_infinity - self.properties['opticaldepth'].data(0)) - (2/3))
+        radius_index = np.argmin(tau_adjusted)
+        total_length = len(tau_adjusted)
+
+        for item in self.eq_list:
+            self.properties[item].val = self.properties[item].val[:radius_index]
+
+        for item in self.de_list:
+            self.properties[item].val = self.properties[item].val[:,:radius_index]
+
+        self.properties['radius'] = self.properties['radius'][:radius_index]
 
     def adjust_step_size(self):
         """
@@ -328,10 +346,14 @@ class Star:
             self.step_size = self.step_size*10
 
         else:
-            self.step_size = max(self.min_step,
-                                min(self.step_size * 0.8 *
-                                    (self.error_thresh / max(self.error))**.2,
-                                    self.max_step))
+            self.step_size = max(
+                self.min_step,
+                    min(
+                        self.step_size * 0.8 *
+                        (self.error_thresh / max(self.error))**.2,
+                        self.max_step)
+            )
+
 
     def de_use_intermediate(self):
         """
@@ -358,8 +380,7 @@ class Star:
                      (self.properties['density'].now(0))**2 / abs(
                          self.properties['density'].now(1)))
 
-        if self.dtau < 0.001:
-            print("Stoping based on dTau")
+        if self.dtau < 0.00001:
             self.run = False
             self.success = True
 
