@@ -136,19 +136,19 @@ def plotmain(folder="Star_Files"):
 								print(name[5])
 								for item in header: # Find the temp and lum columns
 										if item == 'temperature': # Add to temp
-												temperatureH.append(arr[header.index(item)][-1])
+												temperatureHe.append(arr[header.index(item)][-1])
 
 										elif item == 'luminosity': # Add to lum
-												luminosityH.append(arr[header.index(item)][-1] / 2.009e7)
+												luminosityHe.append(arr[header.index(item)][-1] / 2.009e7)
 
 						if name[5] == "Carbon":
 								print(name[5])
 								for item in header: # Find the temp and lum columns
 										if item == 'temperature': # Add to temp
-												temperatureH.append(arr[header.index(item)][-1])
+												temperatureC.append(arr[header.index(item)][-1])
 
 										elif item == 'luminosity': # Add to lum
-												luminosityH.append(arr[header.index(item)][-1] / 2.009e7)
+												luminosityC.append(arr[header.index(item)][-1] / 2.009e7)
 
 						print("Got star", file)
 
