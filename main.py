@@ -13,8 +13,8 @@ def main(args):
         name = "Tc_{:.2e}_rhoc_guess{:.2e}_Core_{}_Type_{}".format(
                 float(line[0]), float(line[1]), line[2], line[3])
 
-        make_star(line[0], line[1], line[2], name)
-        print()
+        make_star(float(line[0]), float(line[1]), line[2], name)
+
 
 if __name__ == '__main__':
     parser = arg.ArgumentParser(description = "Plots Stars!")
