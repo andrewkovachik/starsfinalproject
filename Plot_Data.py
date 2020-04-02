@@ -102,6 +102,31 @@ def plotall(toPlot,
                 ytitle='Components / Max Value')
 
 
+def plotmain(folder="Star_Files"):
+	files = listdir(folder + "/") # Get list of files in folder
+
+	# Make temp and lum arrays
+	temperature = []
+	luminosity  = []
+
+	for file in files: # Loop through the files
+		if file[-4:] == ".txt": # If it's a text file
+			# Get the text file data
+			arr, header = data.txt2array2D(folder + "/" + file)
+
+			for item in header: # Find the temp and lum columns
+				if item == 'temperature': # Add to temp
+					temperature.append(arr[header.index(item)][-1])
+
+				elif item == 'luminosity': # Add to lum
+					luminosity.append(arr[header.index(item)][-1])
+
+	plt.scatter(luminosity, temperature)
+	plt.show()
+
+
+
+
 if __name__ == '__main__':
     parser = arg.ArgumentParser(description="Plots Stars!")
     parser.add_argument(
@@ -127,3 +152,4 @@ if __name__ == '__main__':
             title=title,
             xtitle=xtitle,
             ytitle=ytitle)
+
