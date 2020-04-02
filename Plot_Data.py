@@ -101,6 +101,9 @@ def plotall(toPlot,
                 xtitle='Radius (m)',
                 ytitle='Components / Max Value')
 
+    print("Plotted star:", title)
+    print()
+
 
 
 
