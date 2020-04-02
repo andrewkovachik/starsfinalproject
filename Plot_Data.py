@@ -158,7 +158,6 @@ if __name__ == '__main__':
     elif args.fileName == "main":
         plotmain()
         print("Main sequence plotted (No save)")
-        
     else:
         plotdata(
             toPlot,

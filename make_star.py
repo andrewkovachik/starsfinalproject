@@ -29,13 +29,14 @@ import Use_Data as data
 def make_star(central_temperature, central_density, core_type, name):
 
     rho_c = central_density
-    rho_c_low =  rho_c - 0.6 * rho_c
-    rho_c_high = rho_c + 0.6 * rho_c
+    rho_c_low =  rho_c - 0.9 * rho_c
+    rho_c_high = rho_c + 0.9 * rho_c
     tolerance = 0.01
     i = 1
     error =10000
 
-    while error > tolerance:
+    while abs(error) > tolerance:
+        print("USING: ", rho_c_low,rho_c,  rho_c_high)
 
         star = starprop.Star(
             cent_density=float(rho_c),
@@ -63,6 +64,7 @@ def make_star(central_temperature, central_density, core_type, name):
         reg_err = Lum_error(star)
         high_err = Lum_error(star_high)
         all_err = [low_err, reg_err, high_err]
+        print("GIVES: ", all_err)
 
         if good_solve == True:
             pass
@@ -72,11 +74,11 @@ def make_star(central_temperature, central_density, core_type, name):
         if good_solve1 == True:
             pass
         else:
-            rho_c_low = (rho_c + rho_c_low)/2
+            pass
         if good_solve2 == True:
             pass
         else:
-            rho_c_high = (rho_c + rho_c_high)/2
+            pass
 
         error = Lum_error(star)
 
@@ -90,7 +92,7 @@ def make_star(central_temperature, central_density, core_type, name):
                 rho_c = rho_c_high
 
             else:
-                diff = diff*np.pi
+                diff = diff*3
 
 
             rho_c_high = rho_c + diff
@@ -107,24 +109,24 @@ def make_star(central_temperature, central_density, core_type, name):
                 rho_c = rho_c_high
 
             else:
-                diff = diff*np.pi
+                diff = diff*3
 
             rho_c_high = rho_c + diff
             rho_c_low =  rho_c - diff
             rho_c_low = max(5000, rho_c_low)
 
         else:
-            if (reg_err * low_err) < 0:
-                diff = rho_c_high - rho_c
-                diff = diff/5
-                rho_c_high = rho_c + diff
-                rho_c_low = rho_c - diff
+            diff = rho_c_high - rho_c
+            diff = diff/10
+            rho_c_high = rho_c + diff
+            rho_c_low = rho_c - diff
 
         if i > 30:
             print("Outside of tolerance")
             break
 
         i += 1
+        rho_c_low = max(5000, rho_c_low)
 
     save_variable = [
         'opticaldepth', 'temperature', 'density', 'luminosity', 'mass',
