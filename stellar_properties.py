@@ -284,25 +284,8 @@ class Star:
         for index, item in enumerate(self.de_list):
             self.error[index] = self.properties[item].error
 
-        for item in self.eq_list:
-            if math.isnan(self.properties[item].now(0)):
-                nan_problem = True
-        for item in self.de_list:
-            if math.isnan(self.properties[item].now(0)):
-                nan_problem = True
-        for item in self.de_list:
-            if math.isnan(self.properties[item].now(1)):
-                nan_problem = True
 
-        if nan_problem==True:
-            print("Found nan")
-            self.step_size = self.step_size/2
-            for item in self.de_list:
-                self.properties[item].use_original()
-            for item in self.eq_list:
-                self.properties[item].use_original()
-
-        elif max(self.error) <= self.error_thresh:
+        if max(self.error) <= self.error_thresh:
 
             self.properties['radius'] = np.append(
                 self.properties['radius'],
@@ -406,7 +389,7 @@ class Star:
             self.run = False
             self.success = True
 
-        elif len(self.properties['radius']) > 30000:
+        elif len(self.properties['radius']) > 5000:
             print("Stopping based on large number of iterations > 30000")
             self.run = False
             self.success = False
