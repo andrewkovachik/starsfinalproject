@@ -10,10 +10,10 @@ def Lum_error(star):
     radius_surface = star.properties["radius"][-1]
     temperature_surface = star.properties["temperature"].data(0)[-1]
     L_star = star.properties["luminosity"].data(0)[-1]
-    return (L_star - 4.0 * np.pi * sigma * (radius_surface**2) *
-                     (temperature_surface**4)) / (
-                         np.sqrt(4.0 * np.pi * sigma * (radius_surface**2) *
-                                 (temperature_surface**4) * L_star))
+    L_bolt = 4.0 * np.pi * sigma * (radius_surface**2) * (temperature_surface**4)
+    ratio = (L_star - L_bolt) / ( np.sqrt(L_bolt * L_star))
+    print(L_star, L_bolt, ratio)
+    return ratio
 
 
 #####inside of make_star after star.solve, array2D[0] = star.properties['radius']######
@@ -29,13 +29,14 @@ import Use_Data as data
 def make_star(central_temperature, central_density, core_type, name):
 
     rho_c = central_density
-    rho_c_low =  rho_c - 0.6 * rho_c
-    rho_c_high = rho_c + 0.6 * rho_c
-    tolerance = 0.01
+    rho_c_low =  300
+    rho_c_high = 500000
+    tolerance = 0.0001
+    rho_tolerance = 0.000001
     i = 1
     error =10000
 
-    while error > tolerance:
+    while abs(error) > tolerance:
 
         star = starprop.Star(
             cent_density=float(rho_c),
@@ -63,68 +64,89 @@ def make_star(central_temperature, central_density, core_type, name):
         reg_err = Lum_error(star)
         high_err = Lum_error(star_high)
         all_err = [low_err, reg_err, high_err]
+        print("Low: ", rho_c_low, low_err)
+        print("Med: ", rho_c, reg_err)
+        print("Hig: ", rho_c_high, high_err)
+        error = reg_err
 
-        if good_solve == True:
-            pass
-        else:
-            pass
+        if np.abs(reg_err) < tolerance or abs(rho_c_high-rho_c_low) < rho_tolerance:
+            print(reg_err<tolerance, abs(rho_c_high-rho_c_low) < rho_tolerance)
+            break
 
-        if good_solve1 == True:
-            pass
-        else:
-            rho_c_low = (rho_c + rho_c_low)/2
-        if good_solve2 == True:
-            pass
-        else:
-            rho_c_high = (rho_c + rho_c_high)/2
-
-        error = Lum_error(star)
-
-        if all(err > 0 for err in all_err):
-            diff = rho_c_high - rho_c
-
-            if low_err < reg_err:
-                rho_c = rho_c_low
-
-            elif high_err < reg_err:
-                rho_c = rho_c_high
-
-            else:
-                diff = diff*np.pi
-
-
-            rho_c_high = rho_c + diff
-            rho_c_low = rho_c - diff
-            rho_c_low = max(5000, rho_c_low)
-
-        elif all(err < 0 for err in all_err):
-            diff = rho_c_high - rho_c
-
-            if low_err > reg_err:
-                rho_c = rho_c_low
-
-            elif high_err > reg_err:
-                rho_c = rho_c_high
-
-            else:
-                diff = diff*np.pi
-
-            rho_c_high = rho_c + diff
-            rho_c_low =  rho_c - diff
-            rho_c_low = max(5000, rho_c_low)
+        if np.sign(reg_err) == np.sign(low_err):
+            rho_c_low = rho_c
 
         else:
-            if (reg_err * low_err) < 0:
-                diff = rho_c_high - rho_c
-                diff = diff/5
-                rho_c_high = rho_c + diff
-                rho_c_low = rho_c - diff
+            rho_c_high = rho_c
 
-        if i > 30:
+
+        #if all(err > 0 for err in all_err):
+        #    diff = rho_c_high - rho_c
+
+        #    if low_err < reg_err:
+        #        rho_c = rho_c_low
+
+        #    elif high_err < reg_err:
+        #        rho_c = rho_c_high
+
+        #    else:
+        #        if reg_err < 0.03:
+        #            diff = diff/1.5
+        #        else:
+        #            diff = diff*np.pi
+
+
+        #    rho_c_high = rho_c + diff
+        #    rho_c_low = rho_c - diff
+        #    rho_c_low = max(1, rho_c_low)
+
+        #elif all(err < 0 for err in all_err):
+        #    diff = rho_c_high - rho_c
+
+        #    if low_err > reg_err:
+        #        rho_c = rho_c_low
+
+        #    elif high_err > reg_err:
+        #        rho_c = rho_c_high
+
+        #    else:
+        #        if reg_err < 0.03:
+        #            diff = diff/1.5
+        #        else:
+        #            diff = diff*np.pi
+
+        #    rho_c_high = rho_c + diff
+        #    rho_c_low =  rho_c - diff
+        #    rho_c_low = max(1,  rho_c_low)
+
+        #else:
+        #    diff = rho_c_high - rho_c
+
+        #    #if abs(low_err) < abs(reg_err) and abs(high_err) < abs(reg_err):
+        #    #    diff = diff/1.5
+
+        #    if reg_err*low_err < 0 and abs(abs(reg_err)-abs(low_err))<10:
+        #        print(abs(abs(reg_err)-abs(low_err))<10)
+        #        rho_c = rho_c - reg_err * ( (rho_c_low-rho_c)/(low_err-reg_err))
+        #        print(rho_c)
+        #    elif reg_err*high_err < 0 and abs(abs(reg_err)-abs(high_err))<10:
+        #        rho_c = rho_c - reg_err * ( (rho_c_high-rho_c)/(high_err-reg_err))
+        #        print(rho_c)
+
+        #    diff = diff/4
+
+        #    rho_c_high = rho_c + diff
+        #    rho_c_low = max(rho_c*.5,rho_c - diff)
+
+        if i > 60:
             print("Outside of tolerance")
             break
 
+        rho_c = (rho_c_high+rho_c_low)/2
+
         i += 1
+        print(error)
+
 
     save_variable = [
         'opticaldepth', 'temperature', 'density', 'luminosity', 'mass',
@@ -147,3 +169,5 @@ def make_star(central_temperature, central_density, core_type, name):
 
     print("Writing star:", name)
     data.array2D2txt(array2D, ["radius"] + save_variable, name)
+
+    return rho_c
